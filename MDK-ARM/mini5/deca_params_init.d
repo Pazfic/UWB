@@ -1,0 +1,10 @@
+mini5\deca_params_init.o: ..\decadriver\deca_params_init.c
+mini5\deca_params_init.o: D:\keil5\ARM\ARMCC\Bin\..\include\stdio.h
+mini5\deca_params_init.o: D:\keil5\ARM\ARMCC\Bin\..\include\stdlib.h
+mini5\deca_params_init.o: ..\decadriver\deca_regs.h
+mini5\deca_params_init.o: ..\decadriver\deca_version.h
+mini5\deca_params_init.o: ..\decadriver\deca_device_api.h
+mini5\deca_params_init.o: D:\keil5\ARM\ARMCC\Bin\..\include\stdint.h
+mini5\deca_params_init.o: ..\decadriver\deca_param_types.h
+mini5\deca_params_init.o: ..\decadriver\deca_types.h
+mini5\deca_params_init.o: ..\decadriver\compiler.h

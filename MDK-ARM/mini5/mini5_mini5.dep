@@ -1,80 +1,24 @@
 Dependencies for Project 'mini5', Target 'mini5': (DO NOT MODIFY !)
 CompilerVersion: 5060960::V5.06 update 7 (build 960)::.\ARMCC
 F (startup_stm32g070xx.s)(0x62A2DFCA)(--cpu Cortex-M0+ -g --apcs=interwork -I.\RTE\_mini5-IC:\Users\34509\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include--pd "__UVISION_VERSION SETA 536" --pd "_RTE_ SETA 1" --pd "STM32G070xx SETA 1" --pd "_RTE_ SETA 1"--list startup_stm32g070xx.lst --xref -o mini5\startup_stm32g070xx.o --depend mini5\startup_stm32g070xx.d)
-F (..\mydriver\deca_instance.c)(0x68C29A58)(--c99 -c --cpu Cortex-M0+ -g -O3 --apcs=interwork --split_sections -I ../Core/Inc -I ../Drivers/STM32G0xx_HAL_Driver/Inc -I ../Drivers/STM32G0xx_HAL_Driver/Inc/Legacy -I ../Drivers/CMSIS/Device/ST/STM32G0xx/Include -I ../Drivers/CMSIS/Include -I ..\decadriver -I ..\mydriver -I ..\STMFLASH-I.\RTE\_mini5-IC:\Users\34509\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include-D__UVISION_VERSION="536" -D_RTE_ -DSTM32G070xx -D_RTE_ -DUSE_HAL_DRIVER -DSTM32G070xx-o mini5\deca_instance.o --omf_browse mini5\deca_instance.crf --depend mini5\deca_instance.d)
-I (../Core/Inc/main.h)(0x62A2DFC9)
-I (../Drivers/STM32G0xx_HAL_Driver/Inc/stm32g0xx_hal.h)(0x62735BDA)
-I (../Core/Inc/stm32g0xx_hal_conf.h)(0x62A2DFC9)
-I (../Drivers/STM32G0xx_HAL_Driver/Inc/stm32g0xx_hal_rcc.h)(0x62735BDA)
-I (../Drivers/STM32G0xx_HAL_Driver/Inc/stm32g0xx_hal_def.h)(0x62735BDA)
-I (../Drivers/CMSIS/Device/ST/STM32G0xx/Include/stm32g0xx.h)(0x62735BDA)
-I (../Drivers/CMSIS/Device/ST/STM32G0xx/Include/stm32g070xx.h)(0x62735BDA)
-I (../Drivers/CMSIS/Include/core_cm0plus.h)(0x62735BD0)
-I (D:\keil5\ARM\ARMCC\include\stdint.h)(0x6025237E)
-I (../Drivers/CMSIS/Include/cmsis_version.h)(0x62735BD0)
-I (../Drivers/CMSIS/Include/cmsis_compiler.h)(0x62735BD0)
-I (../Drivers/CMSIS/Include/cmsis_armcc.h)(0x62735BD0)
-I (../Drivers/CMSIS/Include/mpu_armv7.h)(0x62735BD0)
-I (../Drivers/CMSIS/Device/ST/STM32G0xx/Include/system_stm32g0xx.h)(0x62735BDA)
-I (../Drivers/STM32G0xx_HAL_Driver/Inc/Legacy/stm32_hal_legacy.h)(0x62735BDA)
-I (D:\keil5\ARM\ARMCC\include\stddef.h)(0x6025237E)
-I (../Drivers/STM32G0xx_HAL_Driver/Inc/stm32g0xx_ll_rcc.h)(0x62735BDA)
-I (../Drivers/STM32G0xx_HAL_Driver/Inc/stm32g0xx_hal_rcc_ex.h)(0x62735BDA)
-I (../Drivers/STM32G0xx_HAL_Driver/Inc/stm32g0xx_hal_gpio.h)(0x62735BDA)
-I (../Drivers/STM32G0xx_HAL_Driver/Inc/stm32g0xx_hal_gpio_ex.h)(0x62735BDA)
-I (../Drivers/STM32G0xx_HAL_Driver/Inc/stm32g0xx_hal_dma.h)(0x62735BDA)
-I (../Drivers/STM32G0xx_HAL_Driver/Inc/stm32g0xx_ll_dma.h)(0x62735BDA)
-I (../Drivers/STM32G0xx_HAL_Driver/Inc/stm32g0xx_ll_dmamux.h)(0x62735BDA)
-I (../Drivers/STM32G0xx_HAL_Driver/Inc/stm32g0xx_hal_dma_ex.h)(0x62735BDA)
-I (../Drivers/STM32G0xx_HAL_Driver/Inc/stm32g0xx_hal_cortex.h)(0x62735BDA)
-I (../Drivers/STM32G0xx_HAL_Driver/Inc/stm32g0xx_hal_exti.h)(0x62735BDA)
-I (../Drivers/STM32G0xx_HAL_Driver/Inc/stm32g0xx_hal_flash.h)(0x62735BDA)
-I (../Drivers/STM32G0xx_HAL_Driver/Inc/stm32g0xx_hal_flash_ex.h)(0x62735BDA)
-I (../Drivers/STM32G0xx_HAL_Driver/Inc/stm32g0xx_hal_iwdg.h)(0x62735BDA)
-I (../Drivers/STM32G0xx_HAL_Driver/Inc/stm32g0xx_hal_pwr.h)(0x62735BDA)
-I (../Drivers/STM32G0xx_HAL_Driver/Inc/stm32g0xx_hal_pwr_ex.h)(0x62735BDA)
-I (../Drivers/STM32G0xx_HAL_Driver/Inc/stm32g0xx_hal_spi.h)(0x62735BDA)
-I (../Drivers/STM32G0xx_HAL_Driver/Inc/stm32g0xx_hal_spi_ex.h)(0x62735BDA)
-I (../Drivers/STM32G0xx_HAL_Driver/Inc/stm32g0xx_hal_tim.h)(0x62735BDA)
-I (../Drivers/STM32G0xx_HAL_Driver/Inc/stm32g0xx_hal_tim_ex.h)(0x62735BDA)
-I (../Drivers/STM32G0xx_HAL_Driver/Inc/stm32g0xx_hal_uart.h)(0x62735BDA)
-I (../Drivers/STM32G0xx_HAL_Driver/Inc/stm32g0xx_hal_uart_ex.h)(0x62735BDA)
-I (..\mydriver\instance.h)(0x629EEC80)
-I (..\decadriver\deca_types.h)(0x5EE82224)
-I (..\decadriver\compiler.h)(0x5C1A6714)
-I (..\decadriver\deca_device_api.h)(0x621E0DD2)
-I (..\mydriver\dwt_common.h)(0x629EB9FE)
-I (..\decadriver\deca_regs.h)(0x5C1A671E)
-I (..\decadriver\deca_version.h)(0x5C1A671E)
-I (..\decadriver\port.h)(0x629D6A25)
-I (D:\keil5\ARM\ARMCC\include\string.h)(0x6025237E)
-I (..\mydriver\atcmd.h)(0x629D558E)
-I (..\STMFLASH\flash_info.h)(0x62A69190)
-I (../Core/Inc/usart.h)(0x62A2DFC9)
-I (../Core/Inc/tim.h)(0x62A2DFC9)
+F (..\mydriver\deca_instance.c)(0x68EA180D)(--c99 -c --cpu Cortex-M0+ -g -O3 --apcs=interwork --split_sections -I ../Core/Inc -I ../Drivers/STM32G0xx_HAL_Driver/Inc -I ../Drivers/STM32G0xx_HAL_Driver/Inc/Legacy -I ../Drivers/CMSIS/Device/ST/STM32G0xx/Include -I ../Drivers/CMSIS/Include -I ..\decadriver -I ..\mydriver -I ..\STMFLASH-I.\RTE\_mini5-IC:\Users\34509\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include-D__UVISION_VERSION="536" -D_RTE_ -DSTM32G070xx -D_RTE_ -DUSE_HAL_DRIVER -DSTM32G070xx-o mini5\deca_instance.o --omf_browse mini5\deca_instance.crf --depend mini5\deca_instance.d)
 I (D:\keil5\ARM\ARMCC\include\stdio.h)(0x60252374)
-F (..\mydriver\deca_table.c)(0x62A3FEDD)(--c99 -c --cpu Cortex-M0+ -g -O3 --apcs=interwork --split_sections -I ../Core/Inc -I ../Drivers/STM32G0xx_HAL_Driver/Inc -I ../Drivers/STM32G0xx_HAL_Driver/Inc/Legacy -I ../Drivers/CMSIS/Device/ST/STM32G0xx/Include -I ../Drivers/CMSIS/Include -I ..\decadriver -I ..\mydriver -I ..\STMFLASH-I.\RTE\_mini5-IC:\Users\34509\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include-D__UVISION_VERSION="536" -D_RTE_ -DSTM32G070xx -D_RTE_ -DUSE_HAL_DRIVER -DSTM32G070xx-o mini5\deca_table.o --omf_browse mini5\deca_table.crf --depend mini5\deca_table.d)
-I (..\mydriver\dwt_common.h)(0x629EB9FE)
-I (..\decadriver\deca_types.h)(0x5EE82224)
-I (..\decadriver\compiler.h)(0x5C1A6714)
-I (D:\keil5\ARM\ARMCC\include\stdint.h)(0x6025237E)
-I (..\decadriver\deca_device_api.h)(0x621E0DD2)
-I (..\decadriver\deca_regs.h)(0x5C1A671E)
-I (..\decadriver\deca_version.h)(0x5C1A671E)
-I (..\decadriver\port.h)(0x629D6A25)
-I (D:\keil5\ARM\ARMCC\include\string.h)(0x6025237E)
+I (..\mydriver\dwt_common.h)(0x68D6EB4C)
+I (..\mydriver\atcmd.h)(0x68D6EC64)
+I (..\STMFLASH\flash_info.h)(0x68D6EC51)
+I (../Drivers/STM32G0xx_HAL_Driver/Inc/stm32g0xx_hal.h)(0x62735BDA)
+I (../Core/Inc/stm32g0xx_hal_conf.h)(0x62A2DFC9)
+I (../Drivers/STM32G0xx_HAL_Driver/Inc/stm32g0xx_hal_rcc.h)(0x62735BDA)
+I (../Drivers/STM32G0xx_HAL_Driver/Inc/stm32g0xx_hal_def.h)(0x62735BDA)
 I (../Drivers/CMSIS/Device/ST/STM32G0xx/Include/stm32g0xx.h)(0x62735BDA)
 I (../Drivers/CMSIS/Device/ST/STM32G0xx/Include/stm32g070xx.h)(0x62735BDA)
 I (../Drivers/CMSIS/Include/core_cm0plus.h)(0x62735BD0)
+I (D:\keil5\ARM\ARMCC\include\stdint.h)(0x6025237E)
 I (../Drivers/CMSIS/Include/cmsis_version.h)(0x62735BD0)
 I (../Drivers/CMSIS/Include/cmsis_compiler.h)(0x62735BD0)
 I (../Drivers/CMSIS/Include/cmsis_armcc.h)(0x62735BD0)
 I (../Drivers/CMSIS/Include/mpu_armv7.h)(0x62735BD0)
 I (../Drivers/CMSIS/Device/ST/STM32G0xx/Include/system_stm32g0xx.h)(0x62735BDA)
-I (../Drivers/STM32G0xx_HAL_Driver/Inc/stm32g0xx_hal.h)(0x62735BDA)
-I (../Core/Inc/stm32g0xx_hal_conf.h)(0x62A2DFC9)
-I (../Drivers/STM32G0xx_HAL_Driver/Inc/stm32g0xx_hal_rcc.h)(0x62735BDA)
-I (../Drivers/STM32G0xx_HAL_Driver/Inc/stm32g0xx_hal_def.h)(0x62735BDA)
 I (../Drivers/STM32G0xx_HAL_Driver/Inc/Legacy/stm32_hal_legacy.h)(0x62735BDA)
 I (D:\keil5\ARM\ARMCC\include\stddef.h)(0x6025237E)
 I (../Drivers/STM32G0xx_HAL_Driver/Inc/stm32g0xx_ll_rcc.h)(0x62735BDA)
@@ -98,14 +42,71 @@ I (../Drivers/STM32G0xx_HAL_Driver/Inc/stm32g0xx_hal_tim.h)(0x62735BDA)
 I (../Drivers/STM32G0xx_HAL_Driver/Inc/stm32g0xx_hal_tim_ex.h)(0x62735BDA)
 I (../Drivers/STM32G0xx_HAL_Driver/Inc/stm32g0xx_hal_uart.h)(0x62735BDA)
 I (../Drivers/STM32G0xx_HAL_Driver/Inc/stm32g0xx_hal_uart_ex.h)(0x62735BDA)
-I (..\mydriver\atcmd.h)(0x629D558E)
-I (..\STMFLASH\flash_info.h)(0x62A69190)
 I (../Core/Inc/usart.h)(0x62A2DFC9)
 I (../Core/Inc/main.h)(0x62A2DFC9)
-I (..\mydriver\instance.h)(0x629EEC80)
+I (..\decadriver\deca_device_api.h)(0x621E0DD2)
+I (..\decadriver\deca_regs.h)(0x5C1A671E)
+I (..\decadriver\deca_version.h)(0x5C1A671E)
+I (..\decadriver\deca_types.h)(0x68D913CF)
+I (..\decadriver\compiler.h)(0x5C1A6714)
+I (..\mydriver\instance.h)(0x68E7A283)
+I (..\decadriver\port.h)(0x629D6A25)
+I (D:\keil5\ARM\ARMCC\include\string.h)(0x6025237E)
 I (../Core/Inc/tim.h)(0x62A2DFC9)
-F (..\STMFLASH\flash_info.c)(0x629EEF9A)(--c99 -c --cpu Cortex-M0+ -g -O3 --apcs=interwork --split_sections -I ../Core/Inc -I ../Drivers/STM32G0xx_HAL_Driver/Inc -I ../Drivers/STM32G0xx_HAL_Driver/Inc/Legacy -I ../Drivers/CMSIS/Device/ST/STM32G0xx/Include -I ../Drivers/CMSIS/Include -I ..\decadriver -I ..\mydriver -I ..\STMFLASH-I.\RTE\_mini5-IC:\Users\34509\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include-D__UVISION_VERSION="536" -D_RTE_ -DSTM32G070xx -D_RTE_ -DUSE_HAL_DRIVER -DSTM32G070xx-o mini5\flash_info.o --omf_browse mini5\flash_info.crf --depend mini5\flash_info.d)
-I (..\STMFLASH\flash_info.h)(0x62A69190)
+I (../Core/Inc/iwdg.h)(0x62A2DFC9)
+F (..\mydriver\deca_table.c)(0x68E8FC36)(--c99 -c --cpu Cortex-M0+ -g -O3 --apcs=interwork --split_sections -I ../Core/Inc -I ../Drivers/STM32G0xx_HAL_Driver/Inc -I ../Drivers/STM32G0xx_HAL_Driver/Inc/Legacy -I ../Drivers/CMSIS/Device/ST/STM32G0xx/Include -I ../Drivers/CMSIS/Include -I ..\decadriver -I ..\mydriver -I ..\STMFLASH-I.\RTE\_mini5-IC:\Users\34509\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include-D__UVISION_VERSION="536" -D_RTE_ -DSTM32G070xx -D_RTE_ -DUSE_HAL_DRIVER -DSTM32G070xx-o mini5\deca_table.o --omf_browse mini5\deca_table.crf --depend mini5\deca_table.d)
+I (..\mydriver\dwt_common.h)(0x68D6EB4C)
+I (..\mydriver\atcmd.h)(0x68D6EC64)
+I (..\STMFLASH\flash_info.h)(0x68D6EC51)
+I (../Drivers/STM32G0xx_HAL_Driver/Inc/stm32g0xx_hal.h)(0x62735BDA)
+I (../Core/Inc/stm32g0xx_hal_conf.h)(0x62A2DFC9)
+I (../Drivers/STM32G0xx_HAL_Driver/Inc/stm32g0xx_hal_rcc.h)(0x62735BDA)
+I (../Drivers/STM32G0xx_HAL_Driver/Inc/stm32g0xx_hal_def.h)(0x62735BDA)
+I (../Drivers/CMSIS/Device/ST/STM32G0xx/Include/stm32g0xx.h)(0x62735BDA)
+I (../Drivers/CMSIS/Device/ST/STM32G0xx/Include/stm32g070xx.h)(0x62735BDA)
+I (../Drivers/CMSIS/Include/core_cm0plus.h)(0x62735BD0)
+I (D:\keil5\ARM\ARMCC\include\stdint.h)(0x6025237E)
+I (../Drivers/CMSIS/Include/cmsis_version.h)(0x62735BD0)
+I (../Drivers/CMSIS/Include/cmsis_compiler.h)(0x62735BD0)
+I (../Drivers/CMSIS/Include/cmsis_armcc.h)(0x62735BD0)
+I (../Drivers/CMSIS/Include/mpu_armv7.h)(0x62735BD0)
+I (../Drivers/CMSIS/Device/ST/STM32G0xx/Include/system_stm32g0xx.h)(0x62735BDA)
+I (../Drivers/STM32G0xx_HAL_Driver/Inc/Legacy/stm32_hal_legacy.h)(0x62735BDA)
+I (D:\keil5\ARM\ARMCC\include\stddef.h)(0x6025237E)
+I (../Drivers/STM32G0xx_HAL_Driver/Inc/stm32g0xx_ll_rcc.h)(0x62735BDA)
+I (../Drivers/STM32G0xx_HAL_Driver/Inc/stm32g0xx_hal_rcc_ex.h)(0x62735BDA)
+I (../Drivers/STM32G0xx_HAL_Driver/Inc/stm32g0xx_hal_gpio.h)(0x62735BDA)
+I (../Drivers/STM32G0xx_HAL_Driver/Inc/stm32g0xx_hal_gpio_ex.h)(0x62735BDA)
+I (../Drivers/STM32G0xx_HAL_Driver/Inc/stm32g0xx_hal_dma.h)(0x62735BDA)
+I (../Drivers/STM32G0xx_HAL_Driver/Inc/stm32g0xx_ll_dma.h)(0x62735BDA)
+I (../Drivers/STM32G0xx_HAL_Driver/Inc/stm32g0xx_ll_dmamux.h)(0x62735BDA)
+I (../Drivers/STM32G0xx_HAL_Driver/Inc/stm32g0xx_hal_dma_ex.h)(0x62735BDA)
+I (../Drivers/STM32G0xx_HAL_Driver/Inc/stm32g0xx_hal_cortex.h)(0x62735BDA)
+I (../Drivers/STM32G0xx_HAL_Driver/Inc/stm32g0xx_hal_exti.h)(0x62735BDA)
+I (../Drivers/STM32G0xx_HAL_Driver/Inc/stm32g0xx_hal_flash.h)(0x62735BDA)
+I (../Drivers/STM32G0xx_HAL_Driver/Inc/stm32g0xx_hal_flash_ex.h)(0x62735BDA)
+I (../Drivers/STM32G0xx_HAL_Driver/Inc/stm32g0xx_hal_iwdg.h)(0x62735BDA)
+I (../Drivers/STM32G0xx_HAL_Driver/Inc/stm32g0xx_hal_pwr.h)(0x62735BDA)
+I (../Drivers/STM32G0xx_HAL_Driver/Inc/stm32g0xx_hal_pwr_ex.h)(0x62735BDA)
+I (../Drivers/STM32G0xx_HAL_Driver/Inc/stm32g0xx_hal_spi.h)(0x62735BDA)
+I (../Drivers/STM32G0xx_HAL_Driver/Inc/stm32g0xx_hal_spi_ex.h)(0x62735BDA)
+I (../Drivers/STM32G0xx_HAL_Driver/Inc/stm32g0xx_hal_tim.h)(0x62735BDA)
+I (../Drivers/STM32G0xx_HAL_Driver/Inc/stm32g0xx_hal_tim_ex.h)(0x62735BDA)
+I (../Drivers/STM32G0xx_HAL_Driver/Inc/stm32g0xx_hal_uart.h)(0x62735BDA)
+I (../Drivers/STM32G0xx_HAL_Driver/Inc/stm32g0xx_hal_uart_ex.h)(0x62735BDA)
+I (../Core/Inc/usart.h)(0x62A2DFC9)
+I (../Core/Inc/main.h)(0x62A2DFC9)
+I (..\decadriver\deca_device_api.h)(0x621E0DD2)
+I (..\decadriver\deca_regs.h)(0x5C1A671E)
+I (..\decadriver\deca_version.h)(0x5C1A671E)
+I (..\decadriver\deca_types.h)(0x68D913CF)
+I (..\decadriver\compiler.h)(0x5C1A6714)
+I (..\mydriver\instance.h)(0x68E7A283)
+I (..\decadriver\port.h)(0x629D6A25)
+I (D:\keil5\ARM\ARMCC\include\string.h)(0x6025237E)
+I (../Core/Inc/tim.h)(0x62A2DFC9)
+F (..\STMFLASH\flash_info.c)(0x68E7AD85)(--c99 -c --cpu Cortex-M0+ -g -O3 --apcs=interwork --split_sections -I ../Core/Inc -I ../Drivers/STM32G0xx_HAL_Driver/Inc -I ../Drivers/STM32G0xx_HAL_Driver/Inc/Legacy -I ../Drivers/CMSIS/Device/ST/STM32G0xx/Include -I ../Drivers/CMSIS/Include -I ..\decadriver -I ..\mydriver -I ..\STMFLASH-I.\RTE\_mini5-IC:\Users\34509\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include-D__UVISION_VERSION="536" -D_RTE_ -DSTM32G070xx -D_RTE_ -DUSE_HAL_DRIVER -DSTM32G070xx-o mini5\flash_info.o --omf_browse mini5\flash_info.crf --depend mini5\flash_info.d)
+I (..\STMFLASH\flash_info.h)(0x68D6EC51)
 I (../Drivers/STM32G0xx_HAL_Driver/Inc/stm32g0xx_hal.h)(0x62735BDA)
 I (../Core/Inc/stm32g0xx_hal_conf.h)(0x62A2DFC9)
 I (../Drivers/STM32G0xx_HAL_Driver/Inc/stm32g0xx_hal_rcc.h)(0x62735BDA)
@@ -181,9 +182,9 @@ I (../Drivers/STM32G0xx_HAL_Driver/Inc/stm32g0xx_hal_tim.h)(0x62735BDA)
 I (../Drivers/STM32G0xx_HAL_Driver/Inc/stm32g0xx_hal_tim_ex.h)(0x62735BDA)
 I (../Drivers/STM32G0xx_HAL_Driver/Inc/stm32g0xx_hal_uart.h)(0x62735BDA)
 I (../Drivers/STM32G0xx_HAL_Driver/Inc/stm32g0xx_hal_uart_ex.h)(0x62735BDA)
-F (..\mydriver\atcmd.c)(0x68C14FC5)(--c99 -c --cpu Cortex-M0+ -g -O3 --apcs=interwork --split_sections -I ../Core/Inc -I ../Drivers/STM32G0xx_HAL_Driver/Inc -I ../Drivers/STM32G0xx_HAL_Driver/Inc/Legacy -I ../Drivers/CMSIS/Device/ST/STM32G0xx/Include -I ../Drivers/CMSIS/Include -I ..\decadriver -I ..\mydriver -I ..\STMFLASH-I.\RTE\_mini5-IC:\Users\34509\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include-D__UVISION_VERSION="536" -D_RTE_ -DSTM32G070xx -D_RTE_ -DUSE_HAL_DRIVER -DSTM32G070xx-o mini5\atcmd.o --omf_browse mini5\atcmd.crf --depend mini5\atcmd.d)
-I (..\mydriver\atcmd.h)(0x629D558E)
-I (..\STMFLASH\flash_info.h)(0x62A69190)
+F (..\mydriver\atcmd.c)(0x68E7B0DF)(--c99 -c --cpu Cortex-M0+ -g -O3 --apcs=interwork --split_sections -I ../Core/Inc -I ../Drivers/STM32G0xx_HAL_Driver/Inc -I ../Drivers/STM32G0xx_HAL_Driver/Inc/Legacy -I ../Drivers/CMSIS/Device/ST/STM32G0xx/Include -I ../Drivers/CMSIS/Include -I ..\decadriver -I ..\mydriver -I ..\STMFLASH-I.\RTE\_mini5-IC:\Users\34509\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include-D__UVISION_VERSION="536" -D_RTE_ -DSTM32G070xx -D_RTE_ -DUSE_HAL_DRIVER -DSTM32G070xx-o mini5\atcmd.o --omf_browse mini5\atcmd.crf --depend mini5\atcmd.d)
+I (..\mydriver\atcmd.h)(0x68D6EC64)
+I (..\STMFLASH\flash_info.h)(0x68D6EC51)
 I (../Drivers/STM32G0xx_HAL_Driver/Inc/stm32g0xx_hal.h)(0x62735BDA)
 I (../Core/Inc/stm32g0xx_hal_conf.h)(0x62A2DFC9)
 I (../Drivers/STM32G0xx_HAL_Driver/Inc/stm32g0xx_hal_rcc.h)(0x62735BDA)
@@ -222,18 +223,18 @@ I (../Drivers/STM32G0xx_HAL_Driver/Inc/stm32g0xx_hal_uart.h)(0x62735BDA)
 I (../Drivers/STM32G0xx_HAL_Driver/Inc/stm32g0xx_hal_uart_ex.h)(0x62735BDA)
 I (../Core/Inc/usart.h)(0x62A2DFC9)
 I (../Core/Inc/main.h)(0x62A2DFC9)
-I (D:\keil5\ARM\ARMCC\include\string.h)(0x6025237E)
-I (D:\keil5\ARM\ARMCC\include\stdio.h)(0x60252374)
-I (..\mydriver\instance.h)(0x629EEC80)
-I (..\decadriver\deca_types.h)(0x5EE82224)
-I (..\decadriver\compiler.h)(0x5C1A6714)
+I (..\mydriver\instance.h)(0x68E7A283)
 I (..\decadriver\deca_device_api.h)(0x621E0DD2)
-I (..\mydriver\dwt_common.h)(0x629EB9FE)
+I (..\decadriver\deca_types.h)(0x68D913CF)
+I (..\decadriver\compiler.h)(0x5C1A6714)
+I (..\mydriver\dwt_common.h)(0x68D6EB4C)
 I (..\decadriver\deca_regs.h)(0x5C1A671E)
 I (..\decadriver\deca_version.h)(0x5C1A671E)
 I (..\decadriver\port.h)(0x629D6A25)
+I (D:\keil5\ARM\ARMCC\include\string.h)(0x6025237E)
 I (../Core/Inc/tim.h)(0x62A2DFC9)
-F (../Core/Src/main.c)(0x68E8D6AC)(--c99 -c --cpu Cortex-M0+ -g -O3 --apcs=interwork --split_sections -I ../Core/Inc -I ../Drivers/STM32G0xx_HAL_Driver/Inc -I ../Drivers/STM32G0xx_HAL_Driver/Inc/Legacy -I ../Drivers/CMSIS/Device/ST/STM32G0xx/Include -I ../Drivers/CMSIS/Include -I ..\decadriver -I ..\mydriver -I ..\STMFLASH-I.\RTE\_mini5-IC:\Users\34509\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include-D__UVISION_VERSION="536" -D_RTE_ -DSTM32G070xx -D_RTE_ -DUSE_HAL_DRIVER -DSTM32G070xx-o mini5\main.o --omf_browse mini5\main.crf --depend mini5\main.d)
+I (D:\keil5\ARM\ARMCC\include\stdio.h)(0x60252374)
+F (../Core/Src/main.c)(0x68EA1626)(--c99 -c --cpu Cortex-M0+ -g -O3 --apcs=interwork --split_sections -I ../Core/Inc -I ../Drivers/STM32G0xx_HAL_Driver/Inc -I ../Drivers/STM32G0xx_HAL_Driver/Inc/Legacy -I ../Drivers/CMSIS/Device/ST/STM32G0xx/Include -I ../Drivers/CMSIS/Include -I ..\decadriver -I ..\mydriver -I ..\STMFLASH-I.\RTE\_mini5-IC:\Users\34509\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include-D__UVISION_VERSION="536" -D_RTE_ -DSTM32G070xx -D_RTE_ -DUSE_HAL_DRIVER -DSTM32G070xx-o mini5\main.o --omf_browse mini5\main.crf --depend mini5\main.d)
 I (../Core/Inc/main.h)(0x62A2DFC9)
 I (../Drivers/STM32G0xx_HAL_Driver/Inc/stm32g0xx_hal.h)(0x62735BDA)
 I (../Core/Inc/stm32g0xx_hal_conf.h)(0x62A2DFC9)
@@ -272,22 +273,22 @@ I (../Drivers/STM32G0xx_HAL_Driver/Inc/stm32g0xx_hal_tim_ex.h)(0x62735BDA)
 I (../Drivers/STM32G0xx_HAL_Driver/Inc/stm32g0xx_hal_uart.h)(0x62735BDA)
 I (../Drivers/STM32G0xx_HAL_Driver/Inc/stm32g0xx_hal_uart_ex.h)(0x62735BDA)
 I (../Core/Inc/dma.h)(0x62A2DFC9)
+I (../Core/Inc/gpio.h)(0x62A2DFC9)
 I (../Core/Inc/iwdg.h)(0x62A2DFC9)
 I (../Core/Inc/spi.h)(0x62A2DFC9)
 I (../Core/Inc/tim.h)(0x62A2DFC9)
 I (../Core/Inc/usart.h)(0x62A2DFC9)
-I (../Core/Inc/gpio.h)(0x62A2DFC9)
-I (..\decadriver\deca_types.h)(0x5EE82224)
-I (..\decadriver\compiler.h)(0x5C1A6714)
 I (..\decadriver\deca_device_api.h)(0x621E0DD2)
-I (..\decadriver\port.h)(0x629D6A25)
-I (D:\keil5\ARM\ARMCC\include\string.h)(0x6025237E)
-I (..\mydriver\instance.h)(0x629EEC80)
-I (..\mydriver\dwt_common.h)(0x629EB9FE)
 I (..\decadriver\deca_regs.h)(0x5C1A671E)
 I (..\decadriver\deca_version.h)(0x5C1A671E)
-I (..\mydriver\atcmd.h)(0x629D558E)
-I (..\STMFLASH\flash_info.h)(0x62A69190)
+I (..\decadriver\deca_types.h)(0x68D913CF)
+I (..\decadriver\compiler.h)(0x5C1A6714)
+I (..\mydriver\instance.h)(0x68E7A283)
+I (..\mydriver\dwt_common.h)(0x68D6EB4C)
+I (..\mydriver\atcmd.h)(0x68D6EC64)
+I (..\STMFLASH\flash_info.h)(0x68D6EC51)
+I (..\decadriver\port.h)(0x629D6A25)
+I (D:\keil5\ARM\ARMCC\include\string.h)(0x6025237E)
 I (D:\keil5\ARM\ARMCC\include\stdio.h)(0x60252374)
 F (../Core/Src/gpio.c)(0x62A2DFC9)(--c99 -c --cpu Cortex-M0+ -g -O3 --apcs=interwork --split_sections -I ../Core/Inc -I ../Drivers/STM32G0xx_HAL_Driver/Inc -I ../Drivers/STM32G0xx_HAL_Driver/Inc/Legacy -I ../Drivers/CMSIS/Device/ST/STM32G0xx/Include -I ../Drivers/CMSIS/Include -I ..\decadriver -I ..\mydriver -I ..\STMFLASH-I.\RTE\_mini5-IC:\Users\34509\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include-D__UVISION_VERSION="536" -D_RTE_ -DSTM32G070xx -D_RTE_ -DUSE_HAL_DRIVER -DSTM32G070xx-o mini5\gpio.o --omf_browse mini5\gpio.crf --depend mini5\gpio.d)
 I (../Core/Inc/gpio.h)(0x62A2DFC9)
@@ -367,7 +368,7 @@ I (../Drivers/STM32G0xx_HAL_Driver/Inc/stm32g0xx_hal_tim.h)(0x62735BDA)
 I (../Drivers/STM32G0xx_HAL_Driver/Inc/stm32g0xx_hal_tim_ex.h)(0x62735BDA)
 I (../Drivers/STM32G0xx_HAL_Driver/Inc/stm32g0xx_hal_uart.h)(0x62735BDA)
 I (../Drivers/STM32G0xx_HAL_Driver/Inc/stm32g0xx_hal_uart_ex.h)(0x62735BDA)
-F (../Core/Src/iwdg.c)(0x62A2DFC9)(--c99 -c --cpu Cortex-M0+ -g -O3 --apcs=interwork --split_sections -I ../Core/Inc -I ../Drivers/STM32G0xx_HAL_Driver/Inc -I ../Drivers/STM32G0xx_HAL_Driver/Inc/Legacy -I ../Drivers/CMSIS/Device/ST/STM32G0xx/Include -I ../Drivers/CMSIS/Include -I ..\decadriver -I ..\mydriver -I ..\STMFLASH-I.\RTE\_mini5-IC:\Users\34509\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include-D__UVISION_VERSION="536" -D_RTE_ -DSTM32G070xx -D_RTE_ -DUSE_HAL_DRIVER -DSTM32G070xx-o mini5\iwdg.o --omf_browse mini5\iwdg.crf --depend mini5\iwdg.d)
+F (../Core/Src/iwdg.c)(0x68E8E1A7)(--c99 -c --cpu Cortex-M0+ -g -O3 --apcs=interwork --split_sections -I ../Core/Inc -I ../Drivers/STM32G0xx_HAL_Driver/Inc -I ../Drivers/STM32G0xx_HAL_Driver/Inc/Legacy -I ../Drivers/CMSIS/Device/ST/STM32G0xx/Include -I ../Drivers/CMSIS/Include -I ..\decadriver -I ..\mydriver -I ..\STMFLASH-I.\RTE\_mini5-IC:\Users\34509\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include-D__UVISION_VERSION="536" -D_RTE_ -DSTM32G070xx -D_RTE_ -DUSE_HAL_DRIVER -DSTM32G070xx-o mini5\iwdg.o --omf_browse mini5\iwdg.crf --depend mini5\iwdg.d)
 I (../Core/Inc/iwdg.h)(0x62A2DFC9)
 I (../Core/Inc/main.h)(0x62A2DFC9)
 I (../Drivers/STM32G0xx_HAL_Driver/Inc/stm32g0xx_hal.h)(0x62735BDA)
@@ -445,7 +446,7 @@ I (../Drivers/STM32G0xx_HAL_Driver/Inc/stm32g0xx_hal_tim.h)(0x62735BDA)
 I (../Drivers/STM32G0xx_HAL_Driver/Inc/stm32g0xx_hal_tim_ex.h)(0x62735BDA)
 I (../Drivers/STM32G0xx_HAL_Driver/Inc/stm32g0xx_hal_uart.h)(0x62735BDA)
 I (../Drivers/STM32G0xx_HAL_Driver/Inc/stm32g0xx_hal_uart_ex.h)(0x62735BDA)
-F (../Core/Src/tim.c)(0x62A2DFC9)(--c99 -c --cpu Cortex-M0+ -g -O3 --apcs=interwork --split_sections -I ../Core/Inc -I ../Drivers/STM32G0xx_HAL_Driver/Inc -I ../Drivers/STM32G0xx_HAL_Driver/Inc/Legacy -I ../Drivers/CMSIS/Device/ST/STM32G0xx/Include -I ../Drivers/CMSIS/Include -I ..\decadriver -I ..\mydriver -I ..\STMFLASH-I.\RTE\_mini5-IC:\Users\34509\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include-D__UVISION_VERSION="536" -D_RTE_ -DSTM32G070xx -D_RTE_ -DUSE_HAL_DRIVER -DSTM32G070xx-o mini5\tim.o --omf_browse mini5\tim.crf --depend mini5\tim.d)
+F (../Core/Src/tim.c)(0x68E8F9D6)(--c99 -c --cpu Cortex-M0+ -g -O3 --apcs=interwork --split_sections -I ../Core/Inc -I ../Drivers/STM32G0xx_HAL_Driver/Inc -I ../Drivers/STM32G0xx_HAL_Driver/Inc/Legacy -I ../Drivers/CMSIS/Device/ST/STM32G0xx/Include -I ../Drivers/CMSIS/Include -I ..\decadriver -I ..\mydriver -I ..\STMFLASH-I.\RTE\_mini5-IC:\Users\34509\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include-D__UVISION_VERSION="536" -D_RTE_ -DSTM32G070xx -D_RTE_ -DUSE_HAL_DRIVER -DSTM32G070xx-o mini5\tim.o --omf_browse mini5\tim.crf --depend mini5\tim.d)
 I (../Core/Inc/tim.h)(0x62A2DFC9)
 I (../Core/Inc/main.h)(0x62A2DFC9)
 I (../Drivers/STM32G0xx_HAL_Driver/Inc/stm32g0xx_hal.h)(0x62735BDA)
@@ -484,18 +485,19 @@ I (../Drivers/STM32G0xx_HAL_Driver/Inc/stm32g0xx_hal_tim.h)(0x62735BDA)
 I (../Drivers/STM32G0xx_HAL_Driver/Inc/stm32g0xx_hal_tim_ex.h)(0x62735BDA)
 I (../Drivers/STM32G0xx_HAL_Driver/Inc/stm32g0xx_hal_uart.h)(0x62735BDA)
 I (../Drivers/STM32G0xx_HAL_Driver/Inc/stm32g0xx_hal_uart_ex.h)(0x62735BDA)
-I (..\mydriver\dwt_common.h)(0x629EB9FE)
-I (..\decadriver\deca_types.h)(0x5EE82224)
-I (..\decadriver\compiler.h)(0x5C1A6714)
+I (..\mydriver\dwt_common.h)(0x68D6EB4C)
+I (..\mydriver\atcmd.h)(0x68D6EC64)
+I (..\STMFLASH\flash_info.h)(0x68D6EC51)
+I (../Core/Inc/usart.h)(0x62A2DFC9)
 I (..\decadriver\deca_device_api.h)(0x621E0DD2)
 I (..\decadriver\deca_regs.h)(0x5C1A671E)
 I (..\decadriver\deca_version.h)(0x5C1A671E)
+I (..\decadriver\deca_types.h)(0x68D913CF)
+I (..\decadriver\compiler.h)(0x5C1A6714)
+I (..\mydriver\instance.h)(0x68E7A283)
 I (..\decadriver\port.h)(0x629D6A25)
 I (D:\keil5\ARM\ARMCC\include\string.h)(0x6025237E)
-I (..\mydriver\atcmd.h)(0x629D558E)
-I (..\STMFLASH\flash_info.h)(0x62A69190)
-I (../Core/Inc/usart.h)(0x62A2DFC9)
-I (..\mydriver\instance.h)(0x629EEC80)
+I (../Core/Inc/iwdg.h)(0x62A2DFC9)
 F (../Core/Src/usart.c)(0x62A2DFC9)(--c99 -c --cpu Cortex-M0+ -g -O3 --apcs=interwork --split_sections -I ../Core/Inc -I ../Drivers/STM32G0xx_HAL_Driver/Inc -I ../Drivers/STM32G0xx_HAL_Driver/Inc/Legacy -I ../Drivers/CMSIS/Device/ST/STM32G0xx/Include -I ../Drivers/CMSIS/Include -I ..\decadriver -I ..\mydriver -I ..\STMFLASH-I.\RTE\_mini5-IC:\Users\34509\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include-D__UVISION_VERSION="536" -D_RTE_ -DSTM32G070xx -D_RTE_ -DUSE_HAL_DRIVER -DSTM32G070xx-o mini5\usart.o --omf_browse mini5\usart.crf --depend mini5\usart.d)
 I (../Core/Inc/usart.h)(0x62A2DFC9)
 I (../Core/Inc/main.h)(0x62A2DFC9)
@@ -1359,7 +1361,7 @@ I (../Drivers/STM32G0xx_HAL_Driver/Inc/stm32g0xx_hal_uart_ex.h)(0x62735BDA)
 F (..\decadriver\deca_device.c)(0x61EF969F)(--c99 -c --cpu Cortex-M0+ -g -O3 --apcs=interwork --split_sections -I ../Core/Inc -I ../Drivers/STM32G0xx_HAL_Driver/Inc -I ../Drivers/STM32G0xx_HAL_Driver/Inc/Legacy -I ../Drivers/CMSIS/Device/ST/STM32G0xx/Include -I ../Drivers/CMSIS/Include -I ..\decadriver -I ..\mydriver -I ..\STMFLASH-I.\RTE\_mini5-IC:\Users\34509\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include-D__UVISION_VERSION="536" -D_RTE_ -DSTM32G070xx -D_RTE_ -DUSE_HAL_DRIVER -DSTM32G070xx-o mini5\deca_device.o --omf_browse mini5\deca_device.crf --depend mini5\deca_device.d)
 I (D:\keil5\ARM\ARMCC\include\assert.h)(0x60252378)
 I (D:\keil5\ARM\ARMCC\include\stdlib.h)(0x60252374)
-I (..\decadriver\deca_types.h)(0x5EE82224)
+I (..\decadriver\deca_types.h)(0x68D913CF)
 I (..\decadriver\compiler.h)(0x5C1A6714)
 I (D:\keil5\ARM\ARMCC\include\stdint.h)(0x6025237E)
 I (..\decadriver\deca_param_types.h)(0x5C1A6714)
@@ -1450,7 +1452,7 @@ I (..\decadriver\deca_version.h)(0x5C1A671E)
 I (..\decadriver\deca_device_api.h)(0x621E0DD2)
 I (D:\keil5\ARM\ARMCC\include\stdint.h)(0x6025237E)
 I (..\decadriver\deca_param_types.h)(0x5C1A6714)
-I (..\decadriver\deca_types.h)(0x5EE82224)
+I (..\decadriver\deca_types.h)(0x68D913CF)
 I (..\decadriver\compiler.h)(0x5C1A6714)
 F (..\decadriver\deca_range_tables.c)(0x5C1A6714)(--c99 -c --cpu Cortex-M0+ -g -O3 --apcs=interwork --split_sections -I ../Core/Inc -I ../Drivers/STM32G0xx_HAL_Driver/Inc -I ../Drivers/STM32G0xx_HAL_Driver/Inc/Legacy -I ../Drivers/CMSIS/Device/ST/STM32G0xx/Include -I ../Drivers/CMSIS/Include -I ..\decadriver -I ..\mydriver -I ..\STMFLASH-I.\RTE\_mini5-IC:\Users\34509\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include-D__UVISION_VERSION="536" -D_RTE_ -DSTM32G070xx -D_RTE_ -DUSE_HAL_DRIVER -DSTM32G070xx-o mini5\deca_range_tables.o --omf_browse mini5\deca_range_tables.crf --depend mini5\deca_range_tables.d)
 I (D:\keil5\ARM\ARMCC\include\stdio.h)(0x60252374)
@@ -1458,11 +1460,11 @@ I (D:\keil5\ARM\ARMCC\include\stdlib.h)(0x60252374)
 I (..\decadriver\deca_device_api.h)(0x621E0DD2)
 I (D:\keil5\ARM\ARMCC\include\stdint.h)(0x6025237E)
 I (..\decadriver\deca_param_types.h)(0x5C1A6714)
-I (..\decadriver\deca_types.h)(0x5EE82224)
+I (..\decadriver\deca_types.h)(0x68D913CF)
 I (..\decadriver\compiler.h)(0x5C1A6714)
 F (..\decadriver\deca_spi.c)(0x62735937)(--c99 -c --cpu Cortex-M0+ -g -O3 --apcs=interwork --split_sections -I ../Core/Inc -I ../Drivers/STM32G0xx_HAL_Driver/Inc -I ../Drivers/STM32G0xx_HAL_Driver/Inc/Legacy -I ../Drivers/CMSIS/Device/ST/STM32G0xx/Include -I ../Drivers/CMSIS/Include -I ..\decadriver -I ..\mydriver -I ..\STMFLASH-I.\RTE\_mini5-IC:\Users\34509\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include-D__UVISION_VERSION="536" -D_RTE_ -DSTM32G070xx -D_RTE_ -DUSE_HAL_DRIVER -DSTM32G070xx-o mini5\deca_spi.o --omf_browse mini5\deca_spi.crf --depend mini5\deca_spi.d)
 I (..\decadriver\deca_spi.h)(0x5EA94E38)
-I (..\decadriver\deca_types.h)(0x5EE82224)
+I (..\decadriver\deca_types.h)(0x68D913CF)
 I (..\decadriver\compiler.h)(0x5C1A6714)
 I (D:\keil5\ARM\ARMCC\include\stdint.h)(0x6025237E)
 I (..\decadriver\deca_device_api.h)(0x621E0DD2)

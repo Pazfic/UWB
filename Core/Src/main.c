@@ -1,39 +1,41 @@
 /* USER CODE BEGIN Header */
 /**
-  ******************************************************************************
-  * @file           : main.c
-  * @brief          : Main program body
-  ******************************************************************************
-  * @attention
-  *
-  * <h2><center>&copy; Copyright (c) 2022 STMicroelectronics.
-  * All rights reserved.</center></h2>
-  *
-  * This software component is licensed by ST under BSD 3-Clause license,
-  * the "License"; You may not use this file except in compliance with the
-  * License. You may obtain a copy of the License at:
-  *                        opensource.org/licenses/BSD-3-Clause
-  *
-  ******************************************************************************
-  */
+ ******************************************************************************
+ * @file           : main.c
+ * @brief          : Main program body
+ ******************************************************************************
+ * @attention
+ *
+ * <h2><center>&copy; Copyright (c) 2022 STMicroelectronics.
+ * All rights reserved.</center></h2>
+ *
+ * This software component is licensed by ST under BSD 3-Clause license,
+ * the "License"; You may not use this file except in compliance with the
+ * License. You may obtain a copy of the License at:
+ *                        opensource.org/licenses/BSD-3-Clause
+ *
+ ******************************************************************************
+ */
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
+
 #include "dma.h"
+#include "gpio.h"
 #include "iwdg.h"
 #include "spi.h"
 #include "tim.h"
 #include "usart.h"
-#include "gpio.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-#include "deca_types.h"
 #include "deca_device_api.h"
-#include "port.h"
-#include "instance.h"
 #include "deca_regs.h"
+#include "deca_types.h"
+#include "instance.h"
+#include "port.h"
 #include "stdio.h"
+
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -53,7 +55,6 @@
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
-
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -68,187 +69,172 @@ void SystemClock_Config(void);
 /* USER CODE END 0 */
 
 /**
-  * @brief  The application entry point.
-  * @retval int
-  */
-int main(void)
-{
-  /* USER CODE BEGIN 1 */
-  
-  /* USER CODE END 1 */
+ * @brief  The application entry point.
+ * @retval int
+ */
+int main(void) {
+    /* USER CODE BEGIN 1 */
 
-  /* MCU Configuration--------------------------------------------------------*/
+    /* USER CODE END 1 */
 
-  /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
-  HAL_Init();
+    /* MCU Configuration--------------------------------------------------------*/
 
-  /* USER CODE BEGIN Init */
+    /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
+    HAL_Init();
 
-  /* USER CODE END Init */
+    /* USER CODE BEGIN Init */
 
-  /* Configure the system clock */
-  SystemClock_Config();
+    /* USER CODE END Init */
 
-  /* USER CODE BEGIN SysInit */
-	flash_config();
-  /* USER CODE END SysInit */
+    /* Configure the system clock */
+    SystemClock_Config();
 
-  /* Initialize all configured peripherals */
-  MX_GPIO_Init();
-  MX_SPI1_Init();
-  MX_DMA_Init();
-  MX_USART1_UART_Init();
-  MX_USART3_UART_Init();
-  MX_TIM1_Init();
-  //MX_IWDG_Init();
-  /* USER CODE BEGIN 2 */
-	
-	while( sys_para.flag != 0xAAAA )	//Èç¹ûÖµÊÇ´íµÄ£¬¼ÌÐøµÈ´ý£¬µÆÉÁË¸
-	{
-	
-		HAL_GPIO_WritePin(GPIOB,LED_RUN_Pin,GPIO_PIN_SET);
-		HAL_GPIO_WritePin(GPIOC,LED3_Pin,GPIO_PIN_SET);
-		HAL_Delay(250);
-		HAL_GPIO_WritePin(GPIOB,LED_RUN_Pin,GPIO_PIN_RESET);
-		HAL_GPIO_WritePin(GPIOC,LED3_Pin,GPIO_PIN_RESET);
-		HAL_Delay(250);
-		Process_ATCMD();// handle AT Command						
-		Display_ATCMDInfo();	
+    /* USER CODE BEGIN SysInit */
+    flash_config();
+    /* USER CODE END SysInit */
 
-	}
-  HAL_GPIO_WritePin(GPIOB,LED_RUN_Pin,GPIO_PIN_SET);
-	HAL_GPIO_WritePin(GPIOC,LED3_Pin,GPIO_PIN_SET);
-//	HAL_Delay(1000);
-	if(deca_configure()==(-1))//³õÊ¼»¯DW1000
-	{
-		HAL_GPIO_WritePin(GPIOB,LED_RUN_Pin,GPIO_PIN_SET);//ÈôÊ§°Ü
-		HAL_GPIO_WritePin(GPIOC,LED3_Pin,GPIO_PIN_SET);
-		return(0);
-	}
-	MAX_TAG_SIZE  =   sys_para.TAG_NUM;		//±êÇ©¸öÊý
-	N_Slot        = 	MAX_TAG_SIZE+1;	  //Ê±¼äÆ¬¸öÊý
-	T_Slot        =   sys_para.TAG_SLOT;		//1¸öÊ±¼äÆ¬µÄÊ±¼ä ms
-	T_Round  		  =   T_Slot*N_Slot;//ÂÖÑ¯µÄ×ÜÊ±¼ä
-	display_deviceinfo(&sys_para,INFO_VERSION|INFO_ENET|INFO_UWB|INFO_OTHER);//´òÓ¡¿ª»úÐÅÏ¢
-	for(int ii=0;ii<10;ii++)
-	{
-		HAL_GPIO_WritePin(GPIOB,LED_RUN_Pin,GPIO_PIN_SET);
-		HAL_GPIO_WritePin(GPIOC,LED3_Pin,GPIO_PIN_SET);
-		HAL_Delay(30);
-		HAL_GPIO_WritePin(GPIOB,LED_RUN_Pin,GPIO_PIN_RESET);
-		HAL_GPIO_WritePin(GPIOC,LED3_Pin,GPIO_PIN_RESET);
-		HAL_Delay(30);		
-	}
-	dwt_forcetrxoff();
-	port_EnableEXT_IRQ();	//Ê¹ÄÜÖÐ¶Ï
-	MX_IWDG_Init();
-	
-	HAL_TIM_Base_Start_IT(&htim1);
-  /* USER CODE END 2 */
+    /* Initialize all configured peripherals */
+    MX_GPIO_Init();
+    MX_SPI1_Init();
+    MX_DMA_Init();
+    MX_USART1_UART_Init();
+    MX_USART3_UART_Init();
+    MX_TIM1_Init();
+    // MX_IWDG_Init();
+    /* USER CODE BEGIN 2 */
 
-  /* Infinite loop */
-  /* USER CODE BEGIN WHILE */
-  while (1)
-  {
-    /* USER CODE END WHILE */
+    while (sys_para.flag != 0xAAAA) // å¦‚æžœå€¼æ˜¯é”™çš„ï¼Œç»§ç»­ç­‰å¾…ï¼Œç¯é—ªçƒ
+    {
+        HAL_GPIO_WritePin(GPIOB, LED_RUN_Pin, GPIO_PIN_SET);
+        HAL_GPIO_WritePin(GPIOC, LED3_Pin, GPIO_PIN_SET);
+        HAL_Delay(250);
+        HAL_GPIO_WritePin(GPIOB, LED_RUN_Pin, GPIO_PIN_RESET);
+        HAL_GPIO_WritePin(GPIOC, LED3_Pin, GPIO_PIN_RESET);
+        HAL_Delay(250);
+        Process_ATCMD(); // handle AT Command
+        Display_ATCMDInfo();
+    }
+    HAL_GPIO_WritePin(GPIOB, LED_RUN_Pin, GPIO_PIN_SET);
+    HAL_GPIO_WritePin(GPIOC, LED3_Pin, GPIO_PIN_SET);
+    //	HAL_Delay(1000);
+    if (deca_configure() == (-1)) // åˆå§‹åŒ–DW1000
+    {
+        HAL_GPIO_WritePin(GPIOB, LED_RUN_Pin, GPIO_PIN_SET); // è‹¥å¤±è´¥
+        HAL_GPIO_WritePin(GPIOC, LED3_Pin, GPIO_PIN_SET);
+        return (0);
+    }
+    MAX_TAG_SIZE = sys_para.TAG_NUM;                                                 // æ ‡ç­¾ä¸ªæ•°
+    N_Slot = MAX_TAG_SIZE + 1;                                                       // æ—¶é—´ç‰‡ä¸ªæ•°
+    T_Slot = sys_para.TAG_SLOT;                                                      // 1ä¸ªæ—¶é—´ç‰‡çš„æ—¶é—´ ms
+    T_Round = T_Slot * N_Slot;                                                       // è½®è¯¢çš„æ€»æ—¶é—´
+    display_deviceinfo(&sys_para, INFO_VERSION | INFO_ENET | INFO_UWB | INFO_OTHER); // æ‰“å°å¼€æœºä¿¡æ¯
+    for (int ii = 0; ii < 10; ii++) {
+        HAL_GPIO_WritePin(GPIOB, LED_RUN_Pin, GPIO_PIN_SET);
+        HAL_GPIO_WritePin(GPIOC, LED3_Pin, GPIO_PIN_SET);
+        HAL_Delay(30);
+        HAL_GPIO_WritePin(GPIOB, LED_RUN_Pin, GPIO_PIN_RESET);
+        HAL_GPIO_WritePin(GPIOC, LED3_Pin, GPIO_PIN_RESET);
+        HAL_Delay(30);
+    }
+    dwt_forcetrxoff();
+    port_EnableEXT_IRQ(); // ä½¿èƒ½ä¸­æ–­
+    // MX_IWDG_Init();
 
-    /* USER CODE BEGIN 3 */
-		IWDG_Feed();
-		if(ins.nextState==TA_INIT)
-		{
-			Process_ATCMD();	
+    HAL_TIM_Base_Start_IT(&htim1);
+    /* USER CODE END 2 */
 
-		}						
-		testappruns(MODULE_ROLE);		
-  }
-  /* USER CODE END 3 */
+    /* Infinite loop */
+    /* USER CODE BEGIN WHILE */
+    while (1) {
+        /* USER CODE END WHILE */
+
+        /* USER CODE BEGIN 3 */
+        // IWDG_Feed();
+        if (ins.nextState == TA_INIT) {
+            Process_ATCMD();
+        }
+        testappruns(MODULE_ROLE);
+    }
+    /* USER CODE END 3 */
 }
 
 /**
-  * @brief System Clock Configuration
-  * @retval None
-  */
-void SystemClock_Config(void)
-{
-  RCC_OscInitTypeDef RCC_OscInitStruct = {0};
-  RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
-  RCC_PeriphCLKInitTypeDef PeriphClkInit = {0};
+ * @brief System Clock Configuration
+ * @retval None
+ */
+void SystemClock_Config(void) {
+    RCC_OscInitTypeDef RCC_OscInitStruct = {0};
+    RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
+    RCC_PeriphCLKInitTypeDef PeriphClkInit = {0};
 
-  /** Configure the main internal regulator output voltage
-  */
-  HAL_PWREx_ControlVoltageScaling(PWR_REGULATOR_VOLTAGE_SCALE1);
-  /** Initializes the RCC Oscillators according to the specified parameters
-  * in the RCC_OscInitTypeDef structure.
-  */
-  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI|RCC_OSCILLATORTYPE_LSI;
-  RCC_OscInitStruct.HSIState = RCC_HSI_ON;
-  RCC_OscInitStruct.HSIDiv = RCC_HSI_DIV1;
-  RCC_OscInitStruct.HSICalibrationValue = RCC_HSICALIBRATION_DEFAULT;
-  RCC_OscInitStruct.LSIState = RCC_LSI_ON;
-  RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
-  RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSI;
-  RCC_OscInitStruct.PLL.PLLM = RCC_PLLM_DIV1;
-  RCC_OscInitStruct.PLL.PLLN = 8;
-  RCC_OscInitStruct.PLL.PLLP = RCC_PLLP_DIV2;
-  RCC_OscInitStruct.PLL.PLLR = RCC_PLLR_DIV2;
-  if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  /** Initializes the CPU, AHB and APB buses clocks
-  */
-  RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK|RCC_CLOCKTYPE_SYSCLK
-                              |RCC_CLOCKTYPE_PCLK1;
-  RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;
-  RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
-  RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV1;
+    /** Configure the main internal regulator output voltage
+     */
+    HAL_PWREx_ControlVoltageScaling(PWR_REGULATOR_VOLTAGE_SCALE1);
+    /** Initializes the RCC Oscillators according to the specified parameters
+     * in the RCC_OscInitTypeDef structure.
+     */
+    RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI | RCC_OSCILLATORTYPE_LSI;
+    RCC_OscInitStruct.HSIState = RCC_HSI_ON;
+    RCC_OscInitStruct.HSIDiv = RCC_HSI_DIV1;
+    RCC_OscInitStruct.HSICalibrationValue = RCC_HSICALIBRATION_DEFAULT;
+    RCC_OscInitStruct.LSIState = RCC_LSI_ON;
+    RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
+    RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSI;
+    RCC_OscInitStruct.PLL.PLLM = RCC_PLLM_DIV1;
+    RCC_OscInitStruct.PLL.PLLN = 8;
+    RCC_OscInitStruct.PLL.PLLP = RCC_PLLP_DIV2;
+    RCC_OscInitStruct.PLL.PLLR = RCC_PLLR_DIV2;
+    if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK) {
+        Error_Handler();
+    }
+    /** Initializes the CPU, AHB and APB buses clocks
+     */
+    RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK | RCC_CLOCKTYPE_SYSCLK | RCC_CLOCKTYPE_PCLK1;
+    RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;
+    RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
+    RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV1;
 
-  if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_2) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  /** Initializes the peripherals clocks
-  */
-  PeriphClkInit.PeriphClockSelection = RCC_PERIPHCLK_USART1;
-  PeriphClkInit.Usart1ClockSelection = RCC_USART1CLKSOURCE_PCLK1;
-  if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInit) != HAL_OK)
-  {
-    Error_Handler();
-  }
+    if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_2) != HAL_OK) {
+        Error_Handler();
+    }
+    /** Initializes the peripherals clocks
+     */
+    PeriphClkInit.PeriphClockSelection = RCC_PERIPHCLK_USART1;
+    PeriphClkInit.Usart1ClockSelection = RCC_USART1CLKSOURCE_PCLK1;
+    if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInit) != HAL_OK) {
+        Error_Handler();
+    }
 }
 
 /* USER CODE BEGIN 4 */
 /* USER CODE END 4 */
 
 /**
-  * @brief  This function is executed in case of error occurrence.
-  * @retval None
-  */
-void Error_Handler(void)
-{
-  /* USER CODE BEGIN Error_Handler_Debug */
-  /* User can add his own implementation to report the HAL error return state */
-  __disable_irq();
-  while (1)
-  {
-  }
-  /* USER CODE END Error_Handler_Debug */
+ * @brief  This function is executed in case of error occurrence.
+ * @retval None
+ */
+void Error_Handler(void) {
+    /* USER CODE BEGIN Error_Handler_Debug */
+    /* User can add his own implementation to report the HAL error return state */
+    __disable_irq();
+    while (1) {
+    }
+    /* USER CODE END Error_Handler_Debug */
 }
 
-#ifdef  USE_FULL_ASSERT
+#ifdef USE_FULL_ASSERT
 /**
-  * @brief  Reports the name of the source file and the source line number
-  *         where the assert_param error has occurred.
-  * @param  file: pointer to the source file name
-  * @param  line: assert_param error line source number
-  * @retval None
-  */
-void assert_failed(uint8_t *file, uint32_t line)
-{
-  /* USER CODE BEGIN 6 */
-  /* User can add his own implementation to report the file name and line number,
-     ex: printf("Wrong parameters value: file %s on line %d\r\n", file, line) */
-  /* USER CODE END 6 */
+ * @brief  Reports the name of the source file and the source line number
+ *         where the assert_param error has occurred.
+ * @param  file: pointer to the source file name
+ * @param  line: assert_param error line source number
+ * @retval None
+ */
+void assert_failed(uint8_t *file, uint32_t line) {
+    /* USER CODE BEGIN 6 */
+    /* User can add his own implementation to report the file name and line number,
+       ex: printf("Wrong parameters value: file %s on line %d\r\n", file, line) */
+    /* USER CODE END 6 */
 }
 #endif /* USE_FULL_ASSERT */
 

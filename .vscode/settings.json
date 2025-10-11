@@ -1,5 +1,25 @@
 {
   "files.associations": {
-    "main.h": "c"
-  }
+    "main.h": "c",
+    "tim.h": "c",
+    "deca_device_api.h": "c",
+    "deca_types.h": "c",
+    "deca_regs.h": "c",
+    "stm32g0xx_hal.h": "c",
+    "dwt_common.h": "c",
+    "iwdg.h": "c",
+    "instance.h": "c",
+    "stdio.h": "c",
+    "atcmd.h": "c",
+    "port.h": "c",
+    "flash_info.h": "c"
+  },
+  "[cpp]": {
+    "editor.defaultFormatter": "xaver.clang-format"
+  },
+  "[c]": {
+    "editor.defaultFormatter": "xaver.clang-format"
+  },
+  "editor.formatOnSave": true,
+  "editor.formatOnType": true
 }

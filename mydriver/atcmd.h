@@ -1,8 +1,8 @@
 #ifndef __ATCMD_H
-#define __ATCMD_H	 
+#define __ATCMD_H
 #include "flash_info.h"
-#include "usart.h"
 #include "stdint.h"
+#include "usart.h"
 
 #include "usart.h"
 #define STAR 0x41
@@ -37,24 +37,22 @@
 #define LIAP 0x2E
 #define EROR 0x80
 
-#define INFO_VERSION 0x01 
-#define INFO_SENSOR  0x02
-#define INFO_UWB  	 0x04
-#define INFO_ENET    0x10
+#define INFO_VERSION 0x01
+#define INFO_SENSOR 0x02
+#define INFO_UWB 0x04
+#define INFO_ENET 0x10
 #define INFO_BATTERY 0x20
-#define INFO_OTHER   0x40
-//0x01 INFO_VERSION(°æ±¾ÐÅÏ¢)
-//0x02 INFO_SENSOR(´«¸ÐÆ÷ÐÅÏ¢)
-//0x04 INFO_UWB(UWBÐÅÏ¢)
-//0x08 INFO_ENET(ÒÔÌ«ÍøÏà¹ØÐÅÏ¢)
+#define INFO_OTHER 0x40
+// 0x01 INFO_VERSION(ï¿½æ±¾ï¿½ï¿½Ï¢)
+// 0x02 INFO_SENSOR(ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ï¢)
+// 0x04 INFO_UWB(UWBï¿½ï¿½Ï¢)
+// 0x08 INFO_ENET(ï¿½ï¿½Ì«ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ï¢)
 void display_deviceinfo(System_Para_TypeDef *syspara, uint16_t type);
-
 
 void Display_Searching(void);
 void Display_ATCMDInfo(void);
 
-
-//u8 Check_Switch_Status(u16 value);
+// u8 Check_Switch_Status(u16 value);
 
 void Process_ATCMD(void);
 #endif

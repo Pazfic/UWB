@@ -53,4 +53,3 @@ mini5\deca_instance.o: ..\mydriver\dwt_common.h
 mini5\deca_instance.o: ..\decadriver\port.h
 mini5\deca_instance.o: D:\keil5\ARM\ARMCC\Bin\..\include\string.h
 mini5\deca_instance.o: ../Core/Inc/tim.h
-mini5\deca_instance.o: ../Core/Inc/iwdg.h

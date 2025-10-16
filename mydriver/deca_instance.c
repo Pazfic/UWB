@@ -32,7 +32,9 @@ int twl_address_index = 0;
 
 /***************************************************************************************************/
 
-#include "iwdg.h"
+//! @Debug: 卡死无法进入回调的问题已经找出：在接收状态中状态机切换过度频繁，在等待接收函数中的每个状态都会出现
+
+/***************************************************************************************************/
 
 // 基站的部署间距，和基站的响应范围，单位m
 #define DISTRIBUTION_DIST   5                         // m
@@ -195,7 +197,6 @@ void testappruns(int modes) {
         case TA_INIT: {
             // 初始化
             TA_Init_Handler(modes);
-            state_flag += 2;
         } break;
         case TA_TXE_WAIT: {
             // 中间态，由TA_INIT/TA_RX_WAIT_DATA切换到发送数据的状态
@@ -215,7 +216,6 @@ void testappruns(int modes) {
         case TA_RX_WAIT_POLL: {
             // Anchor 等待POLL状态
             TA_Rx_Poll_Handler();
-            state_flag--;
         } break;
         case TA_TXPOLL_WAIT_SEND: {
             // Tag 发送POLL状态
@@ -228,6 +228,7 @@ void testappruns(int modes) {
         case TA_RX_WAIT_CAND: {
             // Tag 等待CAND状态
             TA_Rx_Cand_Handler();
+            state_flag++;
         } break;
         case TA_TXGRANT_WAIT_SEND: {
             // Tag 发送GRANT状态
@@ -274,6 +275,7 @@ static void TA_Init_Handler(int module_mode) {
 
             ins.previousState = TA_INIT;
             ins.nextState = TA_RXE_WAIT; // 状态机切换: ANCHOR: INIT->RXE_WAIT
+            ins.wait4ack = DWT_START_RX_IMMEDIATE;
 
             Anch_RecNt = 1;
             break;
@@ -379,31 +381,24 @@ static void TA_Rxe_Handler(int module_mode) {
     if (module_mode == TAG) {
         ins.testAppState = TA_RXE_WAIT;
         if (ins.previousState == TA_TXPOLL_WAIT_SEND) {
-            // 确认发送POLL
-            dwt_setrxtimeout(ins.responseTO * 2200); // 设置等待CAND的时间为期望响应数量*2200us
-            ins.nextState = TA_RX_WAIT_CAND;         // 等待CAND信息
+            ins.nextState = TA_RX_WAIT_CAND; // 等待CAND信息
         } else if (ins.previousState == TA_TXGRANT_WAIT_SEND) {
-            // 确认发送GRANT
-            dwt_setrxtimeout(2200);              // 设置等待RESPONSE的时间为2200us
             ins.nextState = TA_RX_WAIT_RESPONSE; // 等待RESPONSE消息
         }
-        dwt_rxenable(DWT_START_RX_IMMEDIATE); // 立刻开启接收
     } else if (module_mode == ANCHOR) {
         ins.testAppState = TA_RXE_WAIT;
         if (ins.previousState == TA_TXCAND_WAIT_SEND) {
-            // 确认发送CAND
-            dwt_setrxtimeout(8800); // 设置等待GRANT的时间为8800us
             ins.nextState = TA_RX_WAIT_GRANT;
         } else if (ins.previousState == TA_INIT) {
-            // 初始化结束，重启接收
+            // Anchor在初始化结束后立即开启接收
             if ((2 * T_Slot * 1100) > 65535) {
                 dwt_setrxtimeout(65535);
             } else {
                 dwt_setrxtimeout(2 * T_Slot * 1100);
             }
+            dwt_rxenable(DWT_START_RX_IMMEDIATE);
             ins.nextState = TA_RX_WAIT_POLL;
         }
-        dwt_rxenable(DWT_START_RX_IMMEDIATE); // 立刻开启接收
     }
 }
 
@@ -414,7 +409,7 @@ static void TA_Rx_Poll_Handler(void) {
     if (dw_event.msgu.rxmsg_ss.messageData[FCODE] == 0) {
         // 未接收到数据
         ins.previousState = ins.testAppState;
-        ins.nextState = TA_RX_WAIT_POLL;
+        // ins.nextState = TA_RX_WAIT_POLL;
     } else if (dw_event.msgu.rxmsg_ss.messageData[FCODE] == POLL) {
         Anch_RecNt = 0;
 
@@ -468,12 +463,10 @@ static void TA_Rx_Poll_Handler(void) {
             } else if (twl_address_index == 0) {
                 // 时隙不合理，回到接收
                 ins.previousState = ins.testAppState;
-                ins.nextState = TA_RX_WAIT_POLL;
             }
         } else {
             // 校验失败，回到接收
             ins.previousState = ins.testAppState;
-            ins.nextState = TA_RX_WAIT_POLL;
         }
 
         dw_event.msgu.rxmsg_ss.messageData[FCODE] = 0;
@@ -481,7 +474,6 @@ static void TA_Rx_Poll_Handler(void) {
         // 不为POLL，回到接收
         Anch_RecNt = 0; // 设置接收标识
         ins.previousState = ins.testAppState;
-        ins.nextState = TA_RX_WAIT_POLL;
 
         dw_event.msgu.rxmsg_ss.messageData[FCODE] = 0;
     }
@@ -508,7 +500,7 @@ static void TA_Tx_Poll_Handler(void) {
     ins.responseTO = 4;
 
     // @Pazfic: 计算发送时间戳
-    poll_tx_ts = get_sys_ts_u64() + (1000ULL * (uint64_t)UUS_TO_DWT_TIME); // 延迟1ms发送
+    poll_tx_ts = get_sys_ts_u64() + (500ULL * (uint64_t)UUS_TO_DWT_TIME); // 延迟1ms发送
     uint32_t delay = (uint32_t)(poll_tx_ts >> 8);
     dwt_setdelayedtrxtime(delay);                                        // 配置延迟发送
     uint64_t precise_tx_ts = ((delay & 0xFFFFFFFEUL) << 8) + TX_ANT_DLY; // 计算真实的发送时间
@@ -526,7 +518,10 @@ static void TA_Tx_Poll_Handler(void) {
 
     dwt_writetxdata(frameLength, (uint8_t *)&(ins.msg_f), 0); // 填充poll数据
     dwt_writetxfctrl(frameLength, 0, 1);                      // 控制发送
-    ret_T = dwt_starttx(DWT_START_TX_DELAYED);                // 延迟发送并延迟接收
+
+    dwt_setrxtimeout(ins.responseTO * 2200);
+    dwt_setrxaftertxdelay(20);                                         // 在发送后20us开启接收
+    ret_T = dwt_starttx(DWT_START_TX_DELAYED | DWT_RESPONSE_EXPECTED); // 延迟发送并在发送完成后开启接收
     RET_T = ret_T;
 
     if (ret_T == DWT_SUCCESS) {
@@ -555,7 +550,6 @@ static void TA_Rx_Cand_Handler(void) {
     ins.testAppState = TA_RX_WAIT_CAND;
     if (dw_event.msgu.rxmsg_ss.messageData[FCODE] == 0) {
         ins.previousState = ins.testAppState;
-        ins.nextState = TA_RX_WAIT_CAND;
     } else if (dw_event.msgu.rxmsg_ss.messageData[FCODE] == CAND) {
         Tag_RecNt = 0;
         // 计算CRC校验
@@ -611,23 +605,19 @@ static void TA_Rx_Cand_Handler(void) {
                 } else {
                     // 距离无效，放弃这段数据，继续接收
                     ins.previousState = ins.testAppState;
-                    ins.nextState = TA_RX_WAIT_CAND;
                 }
             } else {
                 // 非本设备地址，放弃数据，继续接收
                 ins.previousState = ins.testAppState;
-                ins.nextState = TA_RX_WAIT_CAND;
             }
         } else {
             // 校验错误，放弃数据，继续接收
             ins.previousState = ins.testAppState;
-            ins.nextState = TA_RX_WAIT_CAND;
         }
     } else {
         // 数据不为CAND，放弃数据，继续接收
         Tag_RecNt = 0;
         ins.previousState = ins.testAppState;
-        ins.previousState = TA_RX_WAIT_CAND;
     }
     Tag_RecNt = 1;
     dw_event.msgu.rxmsg_ss.messageData[FCODE] = 0;
@@ -643,7 +633,7 @@ static void TA_Tx_Cand_Handler(void) {
     frameLength = FRAME_CRTL_AND_ADDRESS_S + CAND_MSG_LEN + CRC_LEN + FRAME_CRC; // 设置CAND包长度
 
     // 设置延迟发送
-    cand_tx_ts = get_sys_ts_u64() + (1000ULL * (uint64_t)UUS_TO_DWT_TIME); // 延迟100us发送
+    cand_tx_ts = get_sys_ts_u64() + (500ULL * (uint64_t)UUS_TO_DWT_TIME); // 延迟100us发送
     uint32_t delay = (uint32_t)(cand_tx_ts >> 8);
     dwt_setdelayedtrxtime(delay);                                                    // 设置延迟发送时间戳
     uint64_t precise_tx_ts = (uint64_t)(((delay & 0xFFFFFFFEUL) << 8) | TX_ANT_DLY); // 计算精确发送时间戳
@@ -659,7 +649,10 @@ static void TA_Tx_Cand_Handler(void) {
 
     dwt_writetxdata(frameLength, (uint8_t *)&(ins.msg_f), 0); // 填充CAND数据
     dwt_writetxfctrl(frameLength, 0, 1);                      // 控制发送
-    ret_A = dwt_starttx(DWT_START_TX_DELAYED);                // 延迟发送
+
+    dwt_setrxtimeout(8800);                                            // 发送CAND之后等待8800us
+    dwt_setrxaftertxdelay(20);                                         // 发送后延迟20us开启接收
+    ret_A = dwt_starttx(DWT_START_TX_DELAYED | DWT_RESPONSE_EXPECTED); // 延迟发送，发送完成开启接收
     RET_A = ret_A;
 
     // 判断是否发送成功，成功则进入发送确认，失败则回到初始化
@@ -677,7 +670,6 @@ static void TA_Rx_Grant_Handler(void) {
     ins.testAppState = TA_RX_WAIT_GRANT;
     if (dw_event.msgu.rxmsg_ss.messageData[FCODE] == 0) {
         ins.previousState = ins.testAppState;
-        ins.nextState = TA_RX_WAIT_GRANT;
     } else if (dw_event.msgu.rxmsg_ss.messageData[FCODE] == GRANT) {
         Anch_RecNt = 0;
         // 校验CRC
@@ -727,18 +719,15 @@ static void TA_Rx_Grant_Handler(void) {
             } else {
                 // 目标地址与本设备不一致，放弃数据，继续接收
                 ins.previousState = ins.testAppState;
-                ins.nextState = TA_RX_WAIT_GRANT;
             }
         } else {
             // 校验失败，放弃数据，继续接收
             ins.previousState = ins.testAppState;
-            ins.nextState = TA_RX_WAIT_GRANT;
         }
     } else {
         // 不为GRANT数据，放弃数据，继续接收
         Anch_RecNt = 0;
         ins.previousState = ins.testAppState;
-        ins.nextState = TA_RX_WAIT_GRANT;
     }
 
     Anch_RecNt = 1;
@@ -764,7 +753,7 @@ static void TA_Tx_Grant_Handler(void) {
     msg_set_ts(&ins.msg_f.messageData[CAND_RX_TS], cand_rx_ts); // 装载cand接收时间戳
 
     // 设置延迟发送
-    grant_tx_ts = get_sys_ts_u64() + (1000ULL * (uint64_t)UUS_TO_DWT_TIME); // 延迟1000us发送
+    grant_tx_ts = get_sys_ts_u64() + (500ULL * (uint64_t)UUS_TO_DWT_TIME); // 延迟1000us发送
     uint32_t delay = (uint32_t)(grant_tx_ts >> 8);
     dwt_setdelayedtrxtime(delay);                                                  // 设置延迟发送时间戳
     uint64_t precise_tx_ts = (uint64_t)((delay & 0xFFFFFFFEUL) << 8) + TX_ANT_DLY; // 计算精确发送时间戳
@@ -779,7 +768,10 @@ static void TA_Tx_Grant_Handler(void) {
 
     dwt_writetxdata(frameLength, (uint8_t *)&(ins.msg_f), 0); // 填充GRANT数据
     dwt_writetxfctrl(frameLength, 0, 1);                      // 控制发送
-    ret_T = dwt_starttx(DWT_START_TX_DELAYED);                // 延迟发送
+
+    dwt_setrxtimeout(2200);                                            // 设置等待RESPONSE的时间为2200us
+    dwt_setrxaftertxdelay(20);                                         // 设置发送完成后20us开启接收
+    ret_T = dwt_starttx(DWT_START_TX_DELAYED | DWT_RESPONSE_EXPECTED); // 延迟发送，并设定发送完成后开启接收
     RET_T = ret_T;
 
     // 是否发送成功，成功则进行确认，失败则回到初始化阶段
@@ -797,7 +789,6 @@ static void TA_Rx_Response_Handler(void) {
     ins.testAppState = TA_RX_WAIT_RESPONSE;
     if (dw_event.msgu.rxmsg_ss.messageData[FCODE] == 0) {
         ins.previousState = ins.testAppState;
-        ins.nextState = TA_RX_WAIT_RESPONSE;
     } else if (dw_event.msgu.rxmsg_ss.messageData[FCODE] == RESPONSE) {
         Tag_RecNt = 0;
         uint8_t crc_jy = 0;
@@ -861,17 +852,14 @@ static void TA_Rx_Response_Handler(void) {
             } else {
                 // 不对应本设备地址，回到接收
                 ins.previousState = ins.testAppState;
-                ins.nextState = TA_RX_WAIT_RESPONSE;
             }
         } else {
             // CRC校验异常，回到接收
             ins.previousState = ins.testAppState;
-            ins.nextState = TA_RX_WAIT_RESPONSE;
         }
     } else {
         // 消息不为RESPONSE，回到接收
         ins.previousState = ins.testAppState;
-        ins.nextState = TA_RX_WAIT_RESPONSE;
     }
 
     Tag_RecNt = 1;
@@ -896,7 +884,7 @@ static void TA_Tx_Response_Handler(void) {
     }
 
     // 配置延迟发送
-    resp_tx_ts = get_sys_ts_u64() + (1000ULL * (uint64_t)UUS_TO_DWT_TIME); // 延迟1000us发送
+    resp_tx_ts = get_sys_ts_u64() + (500ULL * (uint64_t)UUS_TO_DWT_TIME); // 延迟1000us发送
     uint32_t delay = (uint32_t)(resp_tx_ts >> 8);
     dwt_setdelayedtrxtime(delay);
     uint64_t precise_tx_ts = ((delay & 0xFFFFFFFEUL) << 8) + TX_ANT_DLY; // 计算真实的发送时间
@@ -912,7 +900,7 @@ static void TA_Tx_Response_Handler(void) {
 
     dwt_writetxdata(frameLength, (uint8_t *)&(ins.msg_f), 0); // 填充response数据
     dwt_writetxfctrl(frameLength, 0, 1);                      // 控制发送
-    ret_A = dwt_starttx(DWT_START_TX_DELAYED);                // 延迟发送并延迟接收
+    ret_A = dwt_starttx(DWT_START_TX_DELAYED);                // 延迟发送
     RET_A = ret_A;
 
     if (ret_A == DWT_SUCCESS) {

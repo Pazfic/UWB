@@ -1,7 +1,7 @@
 Dependencies for Project 'mini5', Target 'mini5': (DO NOT MODIFY !)
 CompilerVersion: 5060960::V5.06 update 7 (build 960)::.\ARMCC
 F (startup_stm32g070xx.s)(0x62A2DFCA)(--cpu Cortex-M0+ -g --apcs=interwork -I.\RTE\_mini5-IC:\Users\34509\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include--pd "__UVISION_VERSION SETA 536" --pd "_RTE_ SETA 1" --pd "STM32G070xx SETA 1" --pd "_RTE_ SETA 1"--list startup_stm32g070xx.lst --xref -o mini5\startup_stm32g070xx.o --depend mini5\startup_stm32g070xx.d)
-F (..\mydriver\deca_instance.c)(0x68EA180D)(--c99 -c --cpu Cortex-M0+ -g -O3 --apcs=interwork --split_sections -I ../Core/Inc -I ../Drivers/STM32G0xx_HAL_Driver/Inc -I ../Drivers/STM32G0xx_HAL_Driver/Inc/Legacy -I ../Drivers/CMSIS/Device/ST/STM32G0xx/Include -I ../Drivers/CMSIS/Include -I ..\decadriver -I ..\mydriver -I ..\STMFLASH-I.\RTE\_mini5-IC:\Users\34509\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include-D__UVISION_VERSION="536" -D_RTE_ -DSTM32G070xx -D_RTE_ -DUSE_HAL_DRIVER -DSTM32G070xx-o mini5\deca_instance.o --omf_browse mini5\deca_instance.crf --depend mini5\deca_instance.d)
+F (..\mydriver\deca_instance.c)(0x68EFB432)(--c99 -c --cpu Cortex-M0+ -g -O3 --apcs=interwork --split_sections -I ../Core/Inc -I ../Drivers/STM32G0xx_HAL_Driver/Inc -I ../Drivers/STM32G0xx_HAL_Driver/Inc/Legacy -I ../Drivers/CMSIS/Device/ST/STM32G0xx/Include -I ../Drivers/CMSIS/Include -I ..\decadriver -I ..\mydriver -I ..\STMFLASH-I.\RTE\_mini5-IC:\Users\34509\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include-D__UVISION_VERSION="536" -D_RTE_ -DSTM32G070xx -D_RTE_ -DUSE_HAL_DRIVER -DSTM32G070xx-o mini5\deca_instance.o --omf_browse mini5\deca_instance.crf --depend mini5\deca_instance.d)
 I (D:\keil5\ARM\ARMCC\include\stdio.h)(0x60252374)
 I (..\mydriver\dwt_common.h)(0x68D6EB4C)
 I (..\mydriver\atcmd.h)(0x68D6EC64)
@@ -49,12 +49,11 @@ I (..\decadriver\deca_regs.h)(0x5C1A671E)
 I (..\decadriver\deca_version.h)(0x5C1A671E)
 I (..\decadriver\deca_types.h)(0x68D913CF)
 I (..\decadriver\compiler.h)(0x5C1A6714)
-I (..\mydriver\instance.h)(0x68E7A283)
+I (..\mydriver\instance.h)(0x68EB3FCC)
 I (..\decadriver\port.h)(0x629D6A25)
 I (D:\keil5\ARM\ARMCC\include\string.h)(0x6025237E)
 I (../Core/Inc/tim.h)(0x62A2DFC9)
-I (../Core/Inc/iwdg.h)(0x62A2DFC9)
-F (..\mydriver\deca_table.c)(0x68E8FC36)(--c99 -c --cpu Cortex-M0+ -g -O3 --apcs=interwork --split_sections -I ../Core/Inc -I ../Drivers/STM32G0xx_HAL_Driver/Inc -I ../Drivers/STM32G0xx_HAL_Driver/Inc/Legacy -I ../Drivers/CMSIS/Device/ST/STM32G0xx/Include -I ../Drivers/CMSIS/Include -I ..\decadriver -I ..\mydriver -I ..\STMFLASH-I.\RTE\_mini5-IC:\Users\34509\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include-D__UVISION_VERSION="536" -D_RTE_ -DSTM32G070xx -D_RTE_ -DUSE_HAL_DRIVER -DSTM32G070xx-o mini5\deca_table.o --omf_browse mini5\deca_table.crf --depend mini5\deca_table.d)
+F (..\mydriver\deca_table.c)(0x68EB3B69)(--c99 -c --cpu Cortex-M0+ -g -O3 --apcs=interwork --split_sections -I ../Core/Inc -I ../Drivers/STM32G0xx_HAL_Driver/Inc -I ../Drivers/STM32G0xx_HAL_Driver/Inc/Legacy -I ../Drivers/CMSIS/Device/ST/STM32G0xx/Include -I ../Drivers/CMSIS/Include -I ..\decadriver -I ..\mydriver -I ..\STMFLASH-I.\RTE\_mini5-IC:\Users\34509\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include-D__UVISION_VERSION="536" -D_RTE_ -DSTM32G070xx -D_RTE_ -DUSE_HAL_DRIVER -DSTM32G070xx-o mini5\deca_table.o --omf_browse mini5\deca_table.crf --depend mini5\deca_table.d)
 I (..\mydriver\dwt_common.h)(0x68D6EB4C)
 I (..\mydriver\atcmd.h)(0x68D6EC64)
 I (..\STMFLASH\flash_info.h)(0x68D6EC51)
@@ -101,7 +100,7 @@ I (..\decadriver\deca_regs.h)(0x5C1A671E)
 I (..\decadriver\deca_version.h)(0x5C1A671E)
 I (..\decadriver\deca_types.h)(0x68D913CF)
 I (..\decadriver\compiler.h)(0x5C1A6714)
-I (..\mydriver\instance.h)(0x68E7A283)
+I (..\mydriver\instance.h)(0x68EB3FCC)
 I (..\decadriver\port.h)(0x629D6A25)
 I (D:\keil5\ARM\ARMCC\include\string.h)(0x6025237E)
 I (../Core/Inc/tim.h)(0x62A2DFC9)
@@ -223,7 +222,7 @@ I (../Drivers/STM32G0xx_HAL_Driver/Inc/stm32g0xx_hal_uart.h)(0x62735BDA)
 I (../Drivers/STM32G0xx_HAL_Driver/Inc/stm32g0xx_hal_uart_ex.h)(0x62735BDA)
 I (../Core/Inc/usart.h)(0x62A2DFC9)
 I (../Core/Inc/main.h)(0x62A2DFC9)
-I (..\mydriver\instance.h)(0x68E7A283)
+I (..\mydriver\instance.h)(0x68EB3FCC)
 I (..\decadriver\deca_device_api.h)(0x621E0DD2)
 I (..\decadriver\deca_types.h)(0x68D913CF)
 I (..\decadriver\compiler.h)(0x5C1A6714)
@@ -283,7 +282,7 @@ I (..\decadriver\deca_regs.h)(0x5C1A671E)
 I (..\decadriver\deca_version.h)(0x5C1A671E)
 I (..\decadriver\deca_types.h)(0x68D913CF)
 I (..\decadriver\compiler.h)(0x5C1A6714)
-I (..\mydriver\instance.h)(0x68E7A283)
+I (..\mydriver\instance.h)(0x68EB3FCC)
 I (..\mydriver\dwt_common.h)(0x68D6EB4C)
 I (..\mydriver\atcmd.h)(0x68D6EC64)
 I (..\STMFLASH\flash_info.h)(0x68D6EC51)
@@ -494,7 +493,7 @@ I (..\decadriver\deca_regs.h)(0x5C1A671E)
 I (..\decadriver\deca_version.h)(0x5C1A671E)
 I (..\decadriver\deca_types.h)(0x68D913CF)
 I (..\decadriver\compiler.h)(0x5C1A6714)
-I (..\mydriver\instance.h)(0x68E7A283)
+I (..\mydriver\instance.h)(0x68EB3FCC)
 I (..\decadriver\port.h)(0x629D6A25)
 I (D:\keil5\ARM\ARMCC\include\string.h)(0x6025237E)
 I (../Core/Inc/iwdg.h)(0x62A2DFC9)

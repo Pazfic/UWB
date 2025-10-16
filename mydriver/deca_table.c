@@ -333,11 +333,11 @@ int deca_configure(void) {
     }
     // spi_set_rate_low();
     result = dwt_initialise(DWT_LOADUCODE | DWT_READ_OTP_PID | DWT_READ_OTP_LID | DWT_READ_OTP_BAT |
-                            DWT_READ_OTP_TMP);        // ��ʼ��DW1000
-    dwt_setlnapamode(DWT_LNA_ENABLE | DWT_PA_ENABLE); // ������
+                            DWT_READ_OTP_TMP);        // 初始化DW1000
+    dwt_setlnapamode(DWT_LNA_ENABLE | DWT_PA_ENABLE); // 开启功率放大器
     dwt_setfinegraintxseq(0);
     if (result != DWT_SUCCESS) return (-1);
-    port_set_dw1000_fastrate();
+    port_set_dw1000_fastrate(); // 高速收发
 
     MODES = decarangingmode();
     config.chan = chConfig[MODES].channel;
@@ -354,16 +354,15 @@ int deca_configure(void) {
     dwt_configure(&config); // 配置DW1000
 
     dwt_configuresleep(DWT_LOADUCODE | DWT_PRESRV_SLEEP | DWT_CONFIG | DWT_TANDV,
-                       DWT_WAKE_WK | DWT_WAKE_CS | DWT_SLP_EN); // ����˯��
-    dwt_setleds(3);                                             // ����dw1000�շ�ָʾ��
+                       DWT_WAKE_WK | DWT_WAKE_CS | DWT_SLP_EN); // 配置睡眠
+    dwt_setleds(3);                                             // 设置dw1000收发指示LED
     dwt_setinterrupt(DWT_INT_TFRS | DWT_INT_RFCG | DWT_INT_RFTO | DWT_INT_RXPTO | DWT_INT_RPHE | DWT_INT_RFCE |
                          DWT_INT_RFSL | DWT_INT_SFDT,
                      1); // 设置DW1000的中断
 
     // power = txSpectrumConfigr[config.chan].txPwr[rate_ch][config.prf-DWT_PRF_16M];
-    power = sys_para.gain1 + (sys_para.gain2 << 16);         //
-                                                             //	power = (power & 0xff) ;
-                                                             //	power |= (power << 8) + (power << 16) + (power << 24);
+    power = sys_para.gain1 + (sys_para.gain2 << 16);
+
     txconfig.power = power;                                  //
     txconfig.PGdly = txSpectrumConfigr[config.chan].PGdelay; //
     dwt_configuretxrf(&txconfig);                            //

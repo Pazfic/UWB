@@ -28,65 +28,63 @@ Project File Date:  09/01/2025
 *** Using Compiler 'V5.06 update 7 (build 960)', folder: 'D:\keil5\ARM\ARMCC\Bin'
 Build target 'mini5'
 compiling deca_instance.c...
-..\mydriver\deca_instance.c(59): warning:  #47-D: incompatible redefinition of macro "POLL_MSG_LEN"  (declared at line 42 of "..\mydriver\dwt_common.h")
+..\mydriver\deca_instance.c(81): warning:  #47-D: incompatible redefinition of macro "POLL_MSG_LEN"  (declared at line 42 of "..\mydriver\dwt_common.h")
   #define POLL_MSG_LEN        7  // Tag发送的POLL帧的长度-FCODE(1)+RANGE_NUM(1)+POLL_TX_TS(5)
-..\mydriver\deca_instance.c(127): warning:  #177-D: variable "i"  was declared but never referenced
-      int i;
-..\mydriver\deca_instance.c(189): warning:  #177-D: variable "ret_T"  was declared but never referenced
+..\mydriver\deca_instance.c(228): warning:  #177-D: variable "ret_T"  was declared but never referenced
       int ret_T = 0;
-..\mydriver\deca_instance.c(190): warning:  #177-D: variable "ret_A"  was declared but never referenced
+..\mydriver\deca_instance.c(229): warning:  #177-D: variable "ret_A"  was declared but never referenced
       int ret_A = 0;
-..\mydriver\deca_instance.c(191): warning:  #177-D: variable "u"  was declared but never referenced
+..\mydriver\deca_instance.c(230): warning:  #177-D: variable "u"  was declared but never referenced
       int u = 0;
-..\mydriver\deca_instance.c(557): warning:  #177-D: variable "Anch_num"  was declared but never referenced
+..\mydriver\deca_instance.c(591): warning:  #177-D: variable "Anch_num"  was declared but never referenced
           uint8_t Anch_num = 0;
-..\mydriver\deca_instance.c(631): warning:  #177-D: variable "calcwaittime"  was declared but never referenced
+..\mydriver\deca_instance.c(674): warning:  #177-D: variable "calcwaittime"  was declared but never referenced
       int calcwaittime = 0;
-..\mydriver\deca_instance.c(696): warning:  #550-D: variable "tof_ticks"  was set but never used
+..\mydriver\deca_instance.c(730): warning:  #550-D: variable "tof_ticks"  was set but never used
                   uint64_t tof_ticks = 0;
-..\mydriver\deca_instance.c(795): warning:  #177-D: variable "Anch_num"  was declared but never referenced
+..\mydriver\deca_instance.c(852): warning:  #177-D: variable "Anch_num"  was declared but never referenced
           uint8_t Anch_num = 0;
-..\mydriver\deca_instance.c(936): warning:  #167-D: argument of type "uint8_t *" is incompatible with parameter of type "char *restrict"
+..\mydriver\deca_instance.c(1008): warning:  #167-D: argument of type "uint8_t *" is incompatible with parameter of type "char *restrict"
               u = sprintf((uint8_t *)sendbuff[0], "t%x %08x %08x %08x %08x : %04x %04x %04x %04x\r\n", taddr, dist[0],
-..\mydriver\deca_instance.c(936): warning:  #181-D: argument is incompatible with corresponding format string conversion
+..\mydriver\deca_instance.c(1008): warning:  #181-D: argument is incompatible with corresponding format string conversion
               u = sprintf((uint8_t *)sendbuff[0], "t%x %08x %08x %08x %08x : %04x %04x %04x %04x\r\n", taddr, dist[0],
-..\mydriver\deca_instance.c(937): warning:  #181-D: argument is incompatible with corresponding format string conversion
+..\mydriver\deca_instance.c(1009): warning:  #181-D: argument is incompatible with corresponding format string conversion
                           dist[1], dist[2], dist[3], cand_anchor_addr[0], cand_anchor_addr[1], cand_anchor_addr[2],
-..\mydriver\deca_instance.c(937): warning:  #181-D: argument is incompatible with corresponding format string conversion
+..\mydriver\deca_instance.c(1009): warning:  #181-D: argument is incompatible with corresponding format string conversion
                           dist[1], dist[2], dist[3], cand_anchor_addr[0], cand_anchor_addr[1], cand_anchor_addr[2],
-..\mydriver\deca_instance.c(937): warning:  #181-D: argument is incompatible with corresponding format string conversion
+..\mydriver\deca_instance.c(1009): warning:  #181-D: argument is incompatible with corresponding format string conversion
                           dist[1], dist[2], dist[3], cand_anchor_addr[0], cand_anchor_addr[1], cand_anchor_addr[2],
-..\mydriver\deca_instance.c(959): warning:  #167-D: argument of type "uint8_t *" is incompatible with parameter of type "char *restrict"
+..\mydriver\deca_instance.c(1031): warning:  #167-D: argument of type "uint8_t *" is incompatible with parameter of type "char *restrict"
               u = sprintf((uint8_t *)sendbuff[0], "t%x %08x %08x %08x %08x : %04x %04x %04x %04x\r\n", taddr, dist[0],
-..\mydriver\deca_instance.c(959): warning:  #181-D: argument is incompatible with corresponding format string conversion
+..\mydriver\deca_instance.c(1031): warning:  #181-D: argument is incompatible with corresponding format string conversion
               u = sprintf((uint8_t *)sendbuff[0], "t%x %08x %08x %08x %08x : %04x %04x %04x %04x\r\n", taddr, dist[0],
-..\mydriver\deca_instance.c(960): warning:  #181-D: argument is incompatible with corresponding format string conversion
+..\mydriver\deca_instance.c(1032): warning:  #181-D: argument is incompatible with corresponding format string conversion
                           dist[1], dist[2], dist[3], cand_anchor_addr[0], cand_anchor_addr[1], cand_anchor_addr[2],
-..\mydriver\deca_instance.c(960): warning:  #181-D: argument is incompatible with corresponding format string conversion
+..\mydriver\deca_instance.c(1032): warning:  #181-D: argument is incompatible with corresponding format string conversion
                           dist[1], dist[2], dist[3], cand_anchor_addr[0], cand_anchor_addr[1], cand_anchor_addr[2],
-..\mydriver\deca_instance.c(960): warning:  #181-D: argument is incompatible with corresponding format string conversion
+..\mydriver\deca_instance.c(1032): warning:  #181-D: argument is incompatible with corresponding format string conversion
                           dist[1], dist[2], dist[3], cand_anchor_addr[0], cand_anchor_addr[1], cand_anchor_addr[2],
-..\mydriver\deca_instance.c(980): warning:  #167-D: argument of type "uint8_t *" is incompatible with parameter of type "char *restrict"
+..\mydriver\deca_instance.c(1052): warning:  #167-D: argument of type "uint8_t *" is incompatible with parameter of type "char *restrict"
               u = sprintf((uint8_t *)sendbuff[0], "t%x %08x %08x %08x %08x : %04x %04x %04x %04x\r\n", taddr, dist[0],
-..\mydriver\deca_instance.c(980): warning:  #181-D: argument is incompatible with corresponding format string conversion
+..\mydriver\deca_instance.c(1052): warning:  #181-D: argument is incompatible with corresponding format string conversion
               u = sprintf((uint8_t *)sendbuff[0], "t%x %08x %08x %08x %08x : %04x %04x %04x %04x\r\n", taddr, dist[0],
-..\mydriver\deca_instance.c(981): warning:  #181-D: argument is incompatible with corresponding format string conversion
+..\mydriver\deca_instance.c(1053): warning:  #181-D: argument is incompatible with corresponding format string conversion
                           dist[1], dist[2], dist[3], cand_anchor_addr[0], cand_anchor_addr[1], cand_anchor_addr[2],
-..\mydriver\deca_instance.c(981): warning:  #181-D: argument is incompatible with corresponding format string conversion
+..\mydriver\deca_instance.c(1053): warning:  #181-D: argument is incompatible with corresponding format string conversion
                           dist[1], dist[2], dist[3], cand_anchor_addr[0], cand_anchor_addr[1], cand_anchor_addr[2],
-..\mydriver\deca_instance.c(981): warning:  #181-D: argument is incompatible with corresponding format string conversion
+..\mydriver\deca_instance.c(1053): warning:  #181-D: argument is incompatible with corresponding format string conversion
                           dist[1], dist[2], dist[3], cand_anchor_addr[0], cand_anchor_addr[1], cand_anchor_addr[2],
-..\mydriver\deca_instance.c(669): warning:  #177-D: function "TA_Rx_Grant_Handler"  was declared but never referenced
+..\mydriver\deca_instance.c(713): warning:  #177-D: function "TA_Rx_Grant_Handler"  was declared but never referenced
   static void TA_Rx_Grant_Handler(void) {
-..\mydriver\deca_instance.c(156): warning:  #177-D: variable "resp_rx_tag"  was declared but never referenced
+..\mydriver\deca_instance.c(195): warning:  #177-D: variable "resp_rx_tag"  was declared but never referenced
   static uint64_t resp_rx_tag[MAX_ANCHOR_LIST_SIZE]; // 发送response 时间
-..\mydriver\deca_instance.c(1080): warning:  #177-D: function "get_tx_timestamp_u64"  was declared but never referenced
+..\mydriver\deca_instance.c(1147): warning:  #177-D: function "get_tx_timestamp_u64"  was declared but never referenced
   static uint64_t get_tx_timestamp_u64(void) {
-..\mydriver\deca_instance.c: 27 warnings, 0 errors
+..\mydriver\deca_instance.c: 26 warnings, 0 errors
 linking...
-Program Size: Code=29560 RO-data=1016 RW-data=308 ZI-data=5100  
+Program Size: Code=31968 RO-data=1144 RW-data=332 ZI-data=5100  
 FromELF: creating hex file...
-"mini5\mini5.axf" - 0 Error(s), 27 Warning(s).
+"mini5\mini5.axf" - 0 Error(s), 26 Warning(s).
 
 <h2>Software Packages used:</h2>
 
@@ -109,7 +107,7 @@ Package Vendor: Keil
 
    * Component: ARM::CMSIS:CORE:5.6.0
       Include file:  CMSIS\Core\Include\tz_context.h
-Build Time Elapsed:  00:00:03
+Build Time Elapsed:  00:00:02
 </pre>
 </body>
 </html>

@@ -38,15 +38,15 @@ extern int T_Slot;       // 1??????????? ms
 extern int T_Round;      // ??????????
 /**********************************************************************************************/
 
-#define FINAL_MSG_TS_LEN 5
-#define POLL_MSG_LEN 4
-#define RES_MSG_LEN 4
-#define UUS_TO_DWT_TIME 65536
+#define FINAL_MSG_TS_LEN 4
+#define POLL_MSG_LEN     4
+#define RES_MSG_LEN      4
+#define UUS_TO_DWT_TIME  65536
 
-#define TX_ANT_DLY 16436
-#define RX_ANT_DLY 16436
+#define TX_ANT_DLY       16436
+#define RX_ANT_DLY       16436
 
-#define SPEED_LIGHT 299702547 // ???? m/s
+#define SPEED_LIGHT      299702547 // ???? m/s
 
 /* System mode of operation. used to
  *
@@ -56,26 +56,26 @@ extern int T_Round;      // ??????????
 
 // TX power and PG delay configuration structure
 typedef struct {
-  uint8 PGdelay;
+    uint8 PGdelay;
 
-  // TX POWER
-  // 31:24     BOOST_0.125ms_PWR
-  // 23:16     BOOST_0.25ms_PWR-TX_SHR_PWR
-  // 15:8      BOOST_0.5ms_PWR-TX_PHR_PWR
-  // 7:0       DEFAULT_PWR-TX_DATA_PWR
-  uint32 txPwr[2][2]; //
+    // TX POWER
+    // 31:24     BOOST_0.125ms_PWR
+    // 23:16     BOOST_0.25ms_PWR-TX_SHR_PWR
+    // 15:8      BOOST_0.5ms_PWR-TX_PHR_PWR
+    // 7:0       DEFAULT_PWR-TX_DATA_PWR
+    uint32 txPwr[2][2]; //
 } tx_structr;
 
 // uwb ?????????
 typedef struct {
-  uint8 channel;
-  uint8 prf;
-  uint8 datarate;
-  uint8 preambleCode;
-  uint8 preambleLength;
-  uint8 pacSize;
-  uint8 nsSFD;
-  uint16 sfdTO;
+    uint8 channel;
+    uint8 prf;
+    uint8 datarate;
+    uint8 preambleCode;
+    uint8 preambleLength;
+    uint8 pacSize;
+    uint8 nsSFD;
+    uint16 sfdTO;
 
 } chConfig_t;
 
@@ -96,13 +96,12 @@ typedef struct {
 //}timeConfig_t;
 
 typedef struct {
-
-  uint32 status;     // initial value of register as ISR is entered
-  uint8 event;       // event type
-  uint8 aatset;      // auto ACK TX bit is set
-  uint16 datalength; // length of frame
-  uint8 fctrl[2];    // frame control bytes
-  uint8 dblbuff;     // set if double buffer is enabled
+    uint32 status;     // initial value of register as ISR is entered
+    uint8 event;       // event type
+    uint8 aatset;      // auto ACK TX bit is set
+    uint16 datalength; // length of frame
+    uint8 fctrl[2];    // frame control bytes
+    uint8 dblbuff;     // set if double buffer is enabled
 
 } dwt_callback_data_t;
 

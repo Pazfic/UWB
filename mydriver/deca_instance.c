@@ -32,7 +32,30 @@ int twl_address_index = 0;
 
 /***************************************************************************************************/
 
-//! @Debug: 卡死无法进入回调的问题已经找出：在接收状态中状态机切换过度频繁，在等待接收函数中的每个状态都会出现
+// Debug日志 | ? - 有疑问，待解决 | ! - 正在解决 | * - 已解决
+
+//* @Debug: Anchor无法进入回调的问题已经找出：在接收状态中状态机切换过度频繁，在触发中断加入接收回调之后回到
+//*         原断点处，程序继续运行会导致状态机无法切换到正确的状态导致状态机死锁。Bug已修复。
+
+//* @Debug: Anchor成功进入接收回调，也接收到了来自Tag的信息，也能正确解析POLL包信息，但是并没有进入CAND发送
+//*         的状态；检查到能够进入等待时隙的休眠状态，但是休眠无法结束；发现Anchor模式下的时钟外部中断并没有
+//*         编写休眠时间自减到0判断休眠结束的条件，导致Anchor的休眠时间和定时器溢出的时间一致。Bug已修复。
+
+//* @Debug: Anchor的流程从接收POLL到发送CAND没有问题；单Tag对单Anchor的情况下，Tag从POLL广播到接收单个CAND
+//*         后，计算SS-TWR的结果是错误的，需要检查是解析时间戳错误还是计算错误；是计算出的距离大于了2km，超出
+//*         了测距的最大范围，需要检查SS-TWR计算出的ToF是否正确，以及POLL和CAND数据包中的时间戳数据是否正确；
+//*         发现从数据包中读取时间戳的函数msg_get_ts和设置数据包时间戳的函数msg_set_ts的函数实现存在冲突：读
+//*         取函数采用大端序，设置函数采用小端序，导致从数据包中解析出的时间戳是错误的。Anchor端计算发送时间的
+//*         时候，天线发送延迟TX_ANT_DLY参与计算的形式有问题，Bug已被修复。
+//?         奇怪了，我记得我没改过这两个函数，可能是在用Agent检查的时候被改了。
+
+//? @Debug: Tag使用SS-TWR计算出的距离误差偏大，需要看看是SS-TWR的问题，还是计算错误；测距值的误差很大，但是
+//?         变化值的误差却是合理的，这可能是什么导致的？会不会是计算过程存在问题？尝试计算DS-TWR看看测距误差
+//?         如何；暂时将第一个SS-TWR的计算放弃，收到来自4个不同Anchor的CAND之后，向四个Anchor发送GRANT并等
+//?         RESPONSE。
+
+//! @Debug: 多Anchor对单Tag，在Tag等待CAND时，只会接收到最多一个Anchor的CAND，先一对一的测试看看是否每一个
+//!         Anchor的CAND它都能接收到；
 
 /***************************************************************************************************/
 
@@ -78,14 +101,24 @@ uint8_t tag_group_id = 0x00;    // Tag标记组
 /// (grant_rx_ts - cand_tx_ts) - (grant_tx_ts - cand_rx_ts)]
 /// Anchor在RESPONSE中装载ToF_ds1，Tag端就可以获得3次完整的测距信息，可以试着融合三次测距信息共12维数据，计算出更加精确的距离
 
-uint64_t poll_tx_ts;  // 发送poll时间
-uint64_t poll_rx_ts;  // 接收poll时间
-uint64_t cand_tx_ts;  // 发送cand时间
-uint64_t cand_rx_ts;  // 接收cand时间
-uint64_t grant_tx_ts; // 发送grant时间
-uint64_t grant_rx_ts; // 接收grant时间
-uint64_t resp_tx_ts;  // 发送response时间
-uint64_t resp_rx_ts;  // 接收response时间
+static uint64_t poll_tx_ts;  // 发送poll时间
+static uint64_t poll_rx_ts;  // 接收poll时间
+static uint64_t cand_tx_ts;  // 发送cand时间
+static uint64_t cand_rx_ts;  // 接收cand时间
+static uint64_t grant_tx_ts; // 发送grant时间
+static uint64_t grant_rx_ts; // 接收grant时间
+static uint64_t resp_tx_ts;  // 发送response时间
+static uint64_t resp_rx_ts;  // 接收response时间
+
+// 32位时间戳，用于计算
+static uint32_t poll_tx_ts32;  // 发送poll时间32位
+static uint32_t poll_rx_ts32;  // 接收poll时间32位
+static uint32_t cand_tx_ts32;  // 发送cand时间32位
+static uint32_t cand_rx_ts32;  // 接收cand时间32位
+static uint32_t grant_tx_ts32; // 发送grant时间32位
+static uint32_t grant_rx_ts32; // 接收grant时间32位
+static uint32_t resp_tx_ts32;  // 发送response时间32位
+static uint32_t resp_rx_ts32;  // 接收response时间32位
 
 // 记录CAND的接收时间戳
 uint64_t cand_rx_ts_arr[MAX_ANCHOR_LIST_SIZE] = {0};
@@ -108,8 +141,9 @@ uint8_t RET_A = 0;
 int8_t miss_flag = 0;
 int8_t state_flag = 0;
 int8_t cb_flag = 0;
+uint64_t debug_ts = 0;
 
-static uint64_t get_sys_ts_u64(void);
+static uint64_t get_sys_timestamp_u64(void);
 static void TA_Init_Handler(int module_mode);
 
 static void TA_Txe_Handler(int module_mode);
@@ -126,27 +160,33 @@ static void TA_Rx_Response_Handler(void);
 static void TA_Tx_Response_Handler(void);
 static void TA_Feedback_Handler(void);
 
-// 从单次测距得到的ToF计算距离，单位mm
+/**
+ * @brief 从ToF计算出距离，单位为毫米
+ * @param tof 飞行时间，单位为DW1000时间单位
+ * @return 距离，单位为毫米。如果无效返回-1
+ */
 double instance_calc_distance(uint64_t tof) {
-    int i;
     double dis;
     double tofx = 0;
-    tofx = (tof)*DWT_TIME_UNITS;
-    dis = tofx * ((float)SPEED_OF_LIGHT) * 1000;
-    if ((dis > 2000000.0) || (dis <= 0)) // 无效测距
-    {
-        if (dis > 2000000.0)
-            miss_flag = -1;
-        else if (dis <= 0)
-            miss_flag = -1;
 
+    // 转换为秒
+    tofx = tof * DWT_TIME_UNITS;
+
+    // 计算距离：时间(秒) × 光速(米/秒) × 1000 = 距离(毫米)
+    dis = tofx * ((float)SPEED_OF_LIGHT) * 1000;
+
+    // 有效性检查（以毫米为单位）
+    if ((dis > 2000000.0) || (dis <= 0)) { // 2000000毫米 = 2000米
+        if (dis > 2000000.0)
+            miss_flag = 1;
+        else if (dis <= 0)
+            miss_flag = 2;
         dis = -1;
-    } else if (dis > RESPONSE_RANGE * 1000) // 超出响应范围
-    {
-        miss_flag = -1;
+    } else if (dis > RESPONSE_RANGE * 1000) { // 转换为毫米
+        miss_flag = 3;
         dis = -1;
     } else {
-        miss_flag = -1;
+        miss_flag = 4;
     }
 
     return dis;
@@ -168,7 +208,7 @@ extern int Get_tag_inf;
 static uint64_t get_tx_timestamp_u64(void);
 static uint64_t get_rx_timestamp_u64(void);
 static void msg_set_ts(uint8 *ts_field, uint64 ts);
-static void msg_get_ts(const uint8 *ts_field, uint64 *ts);
+static void msg_get_ts(const uint8 *ts_field, uint32_t *ts);
 
 void insaddress(uint16_t address) // 获取标签ID，基站地址，设置包头帧
 {
@@ -228,7 +268,6 @@ void testappruns(int modes) {
         case TA_RX_WAIT_CAND: {
             // Tag 等待CAND状态
             TA_Rx_Cand_Handler();
-            state_flag++;
         } break;
         case TA_TXGRANT_WAIT_SEND: {
             // Tag 发送GRANT状态
@@ -334,7 +373,7 @@ static void TA_Txe_Handler(int module_mode) {
         if (ins.previousState == TA_INIT || ins.previousState == TA_SLEEP_DONE) {
             // Tag 初始化结束(或者Tag初始化完毕后休眠结束)，准备发送POLL
             ins.nextState = TA_TXPOLL_WAIT_SEND;
-        } else if (ins.previousState == TA_RX_WAIT_RESPONSE) {
+        } else if (ins.previousState == TA_RX_WAIT_RESPONSE || ins.previousState == TA_RX_WAIT_CAND) {
             // 接收到RESPONSE，发送下一个GRANT
             ins.nextState = TA_TXGRANT_WAIT_SEND;
         }
@@ -422,11 +461,10 @@ static void TA_Rx_Poll_Handler(void) {
         for (r = 0; r < crc_len; r++) crc += dw_event.msgu.rxmsg_ss.messageData[r];
         crc = (~crc) + 1;
 
-        miss_flag++;
         if (crc == dw_event.msgu.rxmsg_ss.messageData[POLL_MSG_LEN]) {
             // @Pazfic
             // 获取poll发送时间戳
-            msg_get_ts(&dw_event.msgu.rxmsg_ss.messageData[POLL_TX_TS], &poll_tx_ts);
+            msg_get_ts(&dw_event.msgu.rxmsg_ss.messageData[POLL_TX_TS], &poll_tx_ts32);
             // debug
             twl_address_index = 0;
             taddr = GetT_ID =
@@ -500,10 +538,11 @@ static void TA_Tx_Poll_Handler(void) {
     ins.responseTO = 4;
 
     // @Pazfic: 计算发送时间戳
-    poll_tx_ts = get_sys_ts_u64() + (500ULL * (uint64_t)UUS_TO_DWT_TIME); // 延迟1ms发送
-    uint32_t delay = (uint32_t)(poll_tx_ts >> 8);
-    dwt_setdelayedtrxtime(delay);                                        // 配置延迟发送
-    uint64_t precise_tx_ts = ((delay & 0xFFFFFFFEUL) << 8) + TX_ANT_DLY; // 计算真实的发送时间
+    uint32_t tx_ts = 0;
+    uint64_t precise_tx_ts = get_sys_timestamp_u64();
+    tx_ts = (precise_tx_ts + (1000 * UUS_TO_DWT_TIME)) >> 8;                // 延迟100us发送
+    dwt_setdelayedtrxtime(tx_ts);                                           // 设置延迟发送时间戳
+    precise_tx_ts = (((uint64_t)(tx_ts & 0xFFFFFFFEUL)) << 8) + TX_ANT_DLY; // 计算精确发送时间戳
     poll_tx_ts = precise_tx_ts;
 
     // 装载拓展帧的时间戳
@@ -567,23 +606,31 @@ static void TA_Rx_Cand_Handler(void) {
             if (T_ID == (dw_event.msgu.rxmsg_ss.destAddr[0] + (dw_event.msgu.rxmsg_ss.destAddr[1] << 8))) {
                 // 记录接收时间
                 cand_rx_ts = get_rx_timestamp_u64();
-                // 获取CAND发送时间和POLL接收时间
-                msg_get_ts(&dw_event.msgu.rxmsg_ss.messageData[CAND_TX_TS], &cand_tx_ts);
-                msg_get_ts(&dw_event.msgu.rxmsg_ss.messageData[POLL_RX_TS], &poll_rx_ts);
+                // 获取CAND发送时间和POLL接收时间，记录在32位变量中
+                msg_get_ts(&dw_event.msgu.rxmsg_ss.messageData[CAND_TX_TS], &cand_tx_ts32);
+                msg_get_ts(&dw_event.msgu.rxmsg_ss.messageData[POLL_RX_TS], &poll_rx_ts32);
 
                 // SS-TWR计算一次距离
-                uint64_t rrt = dw_ts_diff(cand_rx_ts, poll_tx_ts);
-                uint64_t rpt = dw_ts_diff(cand_tx_ts, poll_rx_ts);
                 uint64_t tof_ticks = 0;
-                if (rrt > rpt) {
-                    tof_ticks = (rrt - rpt) >> 1;
-                } else {
-                    tof_ticks = 0;
-                }
+                // uint64_t rrt = dw_ts_diff(cand_rx_ts, poll_tx_ts);
+                // uint64_t rpt = dw_ts_diff(cand_tx_ts, poll_rx_ts);
+                // if (rrt > rpt) {
+                //     tof_ticks = (rrt - rpt) >> 1;
+                // } else {
+                //     tof_ticks = 0;
+                // }
 
-                dist_ss = instance_calc_distance(tof_ticks); // 计算距离
+                // 转换为32位
+                cand_rx_ts32 = (uint32_t)cand_rx_ts;
+                poll_tx_ts32 = (uint32_t)poll_tx_ts;
 
-                if (dist_ss > 0) // 距离有效，记录源地址和距离
+                double rrt = (double)(cand_rx_ts32 - poll_tx_ts32);
+                double rpt = (double)(cand_tx_ts32 - poll_rx_ts32);
+
+                tof_ticks = (uint64_t)((rrt - rpt) / 2);
+
+                double dist = instance_calc_distance(tof_ticks); // 计算距离
+                if (dist > 0)                                    // 距离有效，记录源地址和距离
                 {
                     // 记录地址、距离、和接收时间戳
                     cand_rx_ts_arr[cand_valid_num] = cand_rx_ts;
@@ -606,6 +653,7 @@ static void TA_Rx_Cand_Handler(void) {
                     // 距离无效，放弃这段数据，继续接收
                     ins.previousState = ins.testAppState;
                 }
+
             } else {
                 // 非本设备地址，放弃数据，继续接收
                 ins.previousState = ins.testAppState;
@@ -633,10 +681,11 @@ static void TA_Tx_Cand_Handler(void) {
     frameLength = FRAME_CRTL_AND_ADDRESS_S + CAND_MSG_LEN + CRC_LEN + FRAME_CRC; // 设置CAND包长度
 
     // 设置延迟发送
-    cand_tx_ts = get_sys_ts_u64() + (500ULL * (uint64_t)UUS_TO_DWT_TIME); // 延迟100us发送
-    uint32_t delay = (uint32_t)(cand_tx_ts >> 8);
-    dwt_setdelayedtrxtime(delay);                                                    // 设置延迟发送时间戳
-    uint64_t precise_tx_ts = (uint64_t)(((delay & 0xFFFFFFFEUL) << 8) | TX_ANT_DLY); // 计算精确发送时间戳
+    uint32_t tx_ts = 0;
+    uint64_t precise_tx_ts = get_sys_timestamp_u64();
+    tx_ts = (precise_tx_ts + (1000 * UUS_TO_DWT_TIME)) >> 8;                // 延迟100us发送
+    dwt_setdelayedtrxtime(tx_ts);                                           // 设置延迟发送时间戳
+    precise_tx_ts = (((uint64_t)(tx_ts & 0xFFFFFFFEUL)) << 8) + TX_ANT_DLY; // 计算精确发送时间戳
     cand_tx_ts = precise_tx_ts;
 
     msg_set_ts(&ins.msg_f.messageData[CAND_TX_TS], cand_tx_ts); // 装载cand发送时间戳
@@ -683,23 +732,35 @@ static void TA_Rx_Grant_Handler(void) {
             // 检查目标地址是否与本设备一致
             if (ins.instanceAddress16 ==
                 (dw_event.msgu.rxmsg_ss.destAddr[0] + (dw_event.msgu.rxmsg_ss.destAddr[1] << 8))) {
+                uint64_t tof_ticks = 0;
                 // 记录接收时间
                 grant_rx_ts = get_rx_timestamp_u64();
                 // 获取GRANT发送时间和CAND接收时间
-                msg_get_ts(&dw_event.msgu.rxmsg_ss.messageData[GRANT_TX_TS], &grant_tx_ts);
-                msg_get_ts(&dw_event.msgu.rxmsg_ss.messageData[CAND_RX_TS], &cand_rx_ts);
+                msg_get_ts(&dw_event.msgu.rxmsg_ss.messageData[GRANT_TX_TS], &grant_tx_ts32);
+                msg_get_ts(&dw_event.msgu.rxmsg_ss.messageData[CAND_RX_TS], &cand_rx_ts32);
+
                 // DS-TWR计算距离
-                uint64_t rrt1 = dw_ts_diff(cand_rx_ts, poll_tx_ts);
-                uint64_t rrt2 = dw_ts_diff(grant_rx_ts, cand_tx_ts);
-                uint64_t rpt1 = dw_ts_diff(cand_tx_ts, poll_rx_ts);
-                uint64_t rpt2 = dw_ts_diff(cand_rx_ts, grant_tx_ts);
-                uint64_t tof_ticks = 0;
-                if (rrt1 > rpt1 && rrt2 > rpt2) {
-                    // DS-TWR计算距离
-                    tof_ticks = (((rrt1 - rpt1) + (rrt2 - rpt2)) >> 2);
-                } else {
-                    tof_ticks = 0;
-                }
+                // uint64_t rrt1 = dw_ts_diff(cand_rx_ts, poll_tx_ts);
+                // uint64_t rrt2 = dw_ts_diff(grant_rx_ts, cand_tx_ts);
+                // uint64_t rpt1 = dw_ts_diff(cand_tx_ts, poll_rx_ts);
+                // uint64_t rpt2 = dw_ts_diff(cand_rx_ts, grant_tx_ts);
+                // uint64_t tof_ticks = 0;
+                // if (rrt1 > rpt1 && rrt2 > rpt2) {
+                //     // DS-TWR计算距离
+                //     tof_ticks = (((rrt1 - rpt1) + (rrt2 - rpt2)) >> 2);
+                // } else {
+                //     tof_ticks = 0;
+                // }
+
+                grant_rx_ts32 = (uint32_t)grant_rx_ts;
+                cand_tx_ts32 = (uint32_t)cand_tx_ts;
+
+                double rrt1 = (double)(cand_rx_ts32 - poll_tx_ts32);
+                double rpt1 = (double)(cand_tx_ts32 - poll_rx_ts32);
+                double rrt2 = (double)(grant_rx_ts32 - cand_tx_ts32);
+                double rpt2 = (double)(cand_rx_ts32 - grant_tx_ts32);
+
+                tof_ticks = (int64_t)((rrt1 * rrt2 - rpt1 * rpt2) / (rrt1 + rrt2 + rpt1 + rpt2));
 
                 // 准备发送RESPONSE，预先装载一定量的数据
                 rangnum = ins.rangeNum = dw_event.msgu.rxmsg_ss.messageData[RANGE_NUM]; // 获取测距次数
@@ -753,10 +814,11 @@ static void TA_Tx_Grant_Handler(void) {
     msg_set_ts(&ins.msg_f.messageData[CAND_RX_TS], cand_rx_ts); // 装载cand接收时间戳
 
     // 设置延迟发送
-    grant_tx_ts = get_sys_ts_u64() + (500ULL * (uint64_t)UUS_TO_DWT_TIME); // 延迟1000us发送
-    uint32_t delay = (uint32_t)(grant_tx_ts >> 8);
-    dwt_setdelayedtrxtime(delay);                                                  // 设置延迟发送时间戳
-    uint64_t precise_tx_ts = (uint64_t)((delay & 0xFFFFFFFEUL) << 8) + TX_ANT_DLY; // 计算精确发送时间戳
+    uint32_t tx_ts = 0;
+    uint64_t precise_tx_ts = get_sys_timestamp_u64();
+    tx_ts = (precise_tx_ts + (1000 * UUS_TO_DWT_TIME)) >> 8;                // 延迟100us发送
+    dwt_setdelayedtrxtime(tx_ts);                                           // 设置延迟发送时间戳
+    precise_tx_ts = (((uint64_t)(tx_ts & 0xFFFFFFFEUL)) << 8) + TX_ANT_DLY; // 计算精确发送时间戳
     grant_tx_ts = precise_tx_ts;
 
     msg_set_ts(&ins.msg_f.messageData[GRANT_TX_TS], grant_tx_ts); // 装载GRANT发送时间戳
@@ -804,27 +866,41 @@ static void TA_Rx_Response_Handler(void) {
                 Tag_RecNt = 0;
                 Tarecrx = 2;
                 resp_rx_ts = get_rx_timestamp_u64(); // 记录response接收时间
-                uint64_t ToF_ds = 0;
+                uint32_t ToF_ds = 0;
+                uint64_t tof_ticks = 0;
 
                 // 获取RESPONSE中的两个时间戳
-                msg_get_ts(&dw_event.msgu.rxmsg_ss.messageData[GRANT_RX_TS], &grant_rx_ts);
-                msg_get_ts(&dw_event.msgu.rxmsg_ss.messageData[RESP_TX_TS], &resp_tx_ts);
+                msg_get_ts(&dw_event.msgu.rxmsg_ss.messageData[GRANT_RX_TS], &grant_rx_ts32);
+                msg_get_ts(&dw_event.msgu.rxmsg_ss.messageData[RESP_TX_TS], &resp_tx_ts32);
                 // 获取Anchor计算出的DS-TWR数据
                 msg_get_ts(&dw_event.msgu.rxmsg_ss.messageData[TOFR], &ToF_ds);
                 ToF_ds1[response_num] = ToF_ds;
 
                 // Tag端计算一遍DS-TWR
-                uint64_t rrt1 = dw_ts_diff(resp_rx_ts, grant_tx_ts);
-                uint64_t rpt1 = dw_ts_diff(resp_tx_ts, grant_rx_ts);
-                uint64_t rrt2 = dw_ts_diff(grant_rx_ts, cand_tx_ts);
-                uint64_t rpt2 = dw_ts_diff(grant_tx_ts, cand_rx_ts);
-                uint64_t tof_ticks = 0;
-                if (rrt1 > rpt1 && rrt2 > rpt2) {
-                    // DS-TWR计算距离
-                    tof_ticks = (((rrt1 - rpt1) + (rrt2 - rpt2)) >> 2);
-                } else {
-                    tof_ticks = 0;
-                }
+                // uint64_t rrt1 = dw_ts_diff(resp_rx_ts, grant_tx_ts);
+                // uint64_t rpt1 = dw_ts_diff(resp_tx_ts, grant_rx_ts);
+                // uint64_t rrt2 = dw_ts_diff(grant_rx_ts, cand_tx_ts);
+                // uint64_t rpt2 = dw_ts_diff(grant_tx_ts, cand_rx_ts);
+                // if (rrt1 > rpt1 && rrt2 > rpt2) {
+                //     // DS-TWR计算距离
+                //     tof_ticks = (((rrt1 - rpt1) + (rrt2 - rpt2)) >> 2);
+                // } else {
+                //     tof_ticks = 0;
+                // }
+
+                grant_tx_ts32 = (uint32_t)grant_tx_ts;
+                resp_rx_ts32 = (uint32_t)resp_rx_ts;
+
+                double rrt1 = (double)(resp_rx_ts32 - grant_tx_ts32);
+                double rpt1 = (double)(resp_tx_ts32 - grant_rx_ts32);
+                double rrt2 = (double)(grant_rx_ts32 - cand_tx_ts32);
+                double rpt2 = (double)(grant_tx_ts32 - cand_rx_ts32);
+
+                // DW官方给出的DS-TWR计算公式
+                tof_ticks = (int64_t)((rrt1 * rrt2 - rpt1 * rpt2) / (rrt1 + rrt2 + rpt1 + rpt2));
+
+                dist_ss = instance_calc_distance(tof_ticks);
+
                 // 保存Tag计算出的DS-TWR
                 ToF_ds2[response_num] = tof_ticks;
 
@@ -884,10 +960,11 @@ static void TA_Tx_Response_Handler(void) {
     }
 
     // 配置延迟发送
-    resp_tx_ts = get_sys_ts_u64() + (500ULL * (uint64_t)UUS_TO_DWT_TIME); // 延迟1000us发送
-    uint32_t delay = (uint32_t)(resp_tx_ts >> 8);
-    dwt_setdelayedtrxtime(delay);
-    uint64_t precise_tx_ts = ((delay & 0xFFFFFFFEUL) << 8) + TX_ANT_DLY; // 计算真实的发送时间
+    uint32_t tx_ts = 0;
+    uint64_t precise_tx_ts = get_sys_timestamp_u64();
+    tx_ts = (precise_tx_ts + (1000 * UUS_TO_DWT_TIME)) >> 8;                // 延迟100us发送
+    dwt_setdelayedtrxtime(tx_ts);                                           // 设置延迟发送时间戳
+    precise_tx_ts = (((uint64_t)(tx_ts & 0xFFFFFFFEUL)) << 8) + TX_ANT_DLY; // 计算精确发送时间戳
     resp_tx_ts = precise_tx_ts;
 
     msg_set_ts(&ins.msg_f.messageData[RESP_TX_TS], resp_tx_ts); // 装载response发送时间
@@ -992,13 +1069,11 @@ static void TA_Feedback_Handler() {
     }
 }
 
-// TODO: 修改以下的几个回调函数
 /**
  * @brief 发送完成回调
  */
 void twr_tx_tag_cb(const dwt_cb_data_t *txd) {
     if (mode == TAG) {
-        cb_flag++;
         if (ins.nextState != TA_TX_WAIT_CONF || ins.nextState != TA_RXE_WAIT) {
             // twr_rx_error_cb(txd);
         }
@@ -1016,7 +1091,6 @@ void twr_rx_cb(const dwt_cb_data_t *rxd) {
     if (mode == TAG) {
         // 读取数据
         dwt_readrxdata((uint8_t *)&dw_event.msgu.frame[0], rxd->datalength, 0);
-        cb_flag++;
 
         // 接收到CAND或者RESPONSE，解析源地址
         if (dw_event.msgu.rxmsg_ss.messageData[FCODE] == CAND ||
@@ -1027,7 +1101,6 @@ void twr_rx_cb(const dwt_cb_data_t *rxd) {
     } else if (mode == ANCHOR) {
         // 读取数据
         dwt_readrxdata((uint8_t *)&dw_event.msgu.frame[0], rxd->datalength, 0);
-        cb_flag++;
 
         // 接收到POLL或者GRANT，解析源地址
         if (dw_event.msgu.rxmsg_ss.messageData[FCODE] == POLL || dw_event.msgu.rxmsg_ss.messageData[FCODE] == GRANT) {
@@ -1067,7 +1140,6 @@ void twr_rx_timeout_cb(const dwt_cb_data_t *rxd) {
  * @brief 接收异常回调
  */
 void twr_rx_error_cb(const dwt_cb_data_t *rxd) {
-    cb_flag++;
     dwt_forcetrxoff();
 
     ins.previousState = ins.testAppState;
@@ -1104,9 +1176,26 @@ static uint64 get_rx_timestamp_u64(void) {
     }
     return ts;
 }
-/*!
-   ------------------------------------------------------------------------------------------------------------------
-                final包数据设置
+
+/**
+ * @Pazfic: 获取系统时间，单位为DW_ticks，官方实现
+ */
+static uint64_t get_sys_timestamp_u64(void) {
+    uint8_t ts_tab[5];
+    uint64_t ts = 0;
+    int i;
+    dwt_readsystime(ts_tab);
+    for (i = 4; i >= 0; --i) {
+        ts <<= 8;
+        ts |= ts_tab[i];
+    }
+    return ts;
+}
+
+/**
+ * @brief 设置时间戳数据
+ * @param ts_field
+ * @param ts
  */
 static void msg_set_ts(uint8 *ts_field, uint64 ts) {
     int i;
@@ -1120,25 +1209,11 @@ static void msg_set_ts(uint8 *ts_field, uint64 ts) {
    ------------------------------------------------------------------------------------------------------------------
                 final包数据读取
  */
-static void msg_get_ts(const uint8 *ts_field, uint64 *ts) {
+static void msg_get_ts(const uint8 *ts_field, uint32_t *ts) {
     int i;
     *ts = 0;
-    for (i = 0; i < FINAL_MSG_TS_LEN; i++) {
-        *ts += ts_field[i] << (i * 8);
+    for (i = FINAL_MSG_TS_LEN - 1; i >= 0; i--) {
+        *ts <<= 8;
+        *ts |= ts_field[i];
     }
-}
-
-/**
- * @Pazfic: 获取系统时间，单位为DW_ticks
- */
-static uint64_t get_sys_ts_u64(void) {
-    uint8_t ts_tab[5];
-    uint64_t ts = 0;
-    int i;
-    dwt_readsystime(ts_tab);
-    for (i = 4; i >= 0; --i) {
-        ts <<= 8;
-        ts |= ts_tab[i];
-    }
-    return ts;
 }

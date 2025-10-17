@@ -126,6 +126,15 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef* htim) {
                 ins.nextState = TA_INIT;
                 Anchrxtime = 0;
             }
+            // 减少休眠时间
+            if (waittime == 1) {
+                if (ins.nextState == TA_SLEEP) {
+                    ins.previousState = ins.testAppState;
+                    ins.nextState = TA_SLEEP_DONE;
+                }
+            }
+            if (waittime > 0) waittime--;
+
             Anchpollingtime++;
         } else if (sys_para.role == 0x02) {
             if (Tag_RecNt == 1) {

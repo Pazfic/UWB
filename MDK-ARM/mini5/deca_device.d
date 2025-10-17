@@ -1,13 +1,13 @@
 mini5\deca_device.o: ..\decadriver\deca_device.c
 mini5\deca_device.o: D:\keil5\ARM\ARMCC\Bin\..\include\assert.h
 mini5\deca_device.o: D:\keil5\ARM\ARMCC\Bin\..\include\stdlib.h
-mini5\deca_device.o: ..\decadriver\deca_types.h
-mini5\deca_device.o: ..\decadriver\compiler.h
+mini5\deca_device.o: ..\decadriver\deca_device_api.h
 mini5\deca_device.o: D:\keil5\ARM\ARMCC\Bin\..\include\stdint.h
 mini5\deca_device.o: ..\decadriver\deca_param_types.h
+mini5\deca_device.o: ..\decadriver\deca_types.h
+mini5\deca_device.o: ..\decadriver\compiler.h
 mini5\deca_device.o: ..\decadriver\deca_regs.h
 mini5\deca_device.o: ..\decadriver\deca_version.h
-mini5\deca_device.o: ..\decadriver\deca_device_api.h
 mini5\deca_device.o: ../Drivers/STM32G0xx_HAL_Driver/Inc/stm32g0xx_hal.h
 mini5\deca_device.o: ../Core/Inc/stm32g0xx_hal_conf.h
 mini5\deca_device.o: ../Drivers/STM32G0xx_HAL_Driver/Inc/stm32g0xx_hal_rcc.h

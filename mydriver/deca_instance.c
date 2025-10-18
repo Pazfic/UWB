@@ -54,8 +54,11 @@ int twl_address_index = 0;
 //?         如何；暂时将第一个SS-TWR的计算放弃，收到来自4个不同Anchor的CAND之后，向四个Anchor发送GRANT并等
 //?         RESPONSE。
 
-//! @Debug: 多Anchor对单Tag，在Tag等待CAND时，只会接收到最多一个Anchor的CAND，先一对一的测试看看是否每一个
-//!         Anchor的CAND它都能接收到；
+//! @Debug: 修改代码，将根据SS-TWR的范围测距逻辑删除，只要Tag接收到了CAND，它都会向CAND来源发送GRANT信息；
+//!         Tag可以正常发出GRANT，Anchor也可以接收到GRANT，但是GRANT无法进入解析，查看是不是校验错误；wc
+//!         是在任务循环中漏写了GRANT解析的状态机=_=，添加状态机查看情况；状态机添加，能够进入状态机，在回
+//!         调中接收到了数据并解析到其功能码为GRANT，但是在解析处理函数中，功能码变为了0，检查接收到数据之
+//!         后是否存在在切换过程中更改了功能码的情况；
 
 /***************************************************************************************************/
 
@@ -73,21 +76,21 @@ int twl_address_index = 0;
 
 #define POLL_TX_TS          2  // POLL信息中poll_tx_ts的偏移量
 #define POLL_RX_TS          2  // CAND信息中poll_rx_ts的偏移量
-#define CAND_TX_TS          7  // CAND信息中cand_tx_ts的偏移量
+#define CAND_TX_TS          6  // CAND信息中cand_tx_ts的偏移量
 #define CAND_RX_TS          2  // GRANT信息中cand_rx_ts的偏移量
-#define GRANT_TX_TS         7  // GRANT信息中grant_tx_ts的偏移量
-#define GRANT_RX_TS         9  // RESPONSE信息中grant_rx_ts的偏移量
-#define RESP_TX_TS          14 // RESPONSE信息中resp_tx_ts的偏移量
+#define GRANT_TX_TS         6  // GRANT信息中grant_tx_ts的偏移量
+#define GRANT_RX_TS         8  // RESPONSE信息中grant_rx_ts的偏移量
+#define RESP_TX_TS          12 // RESPONSE信息中resp_tx_ts的偏移量
+#define RANGE_NUM           1  // RangeNum的偏移量
 #define RESP_SLEEP_CORR_L   2  // RESPONSE信息中sleep_correction的偏移量
 #define RESP_SLEEP_CORR_H   3  // RESPONSE信息中sleep_correction的偏移量
 #define RESP_TOF            4  // RESPONSE信息中ToF的偏移量
-#define RANGE_NUM           1  // RangeNum的偏移量
 
-#define POLL_MSG_LEN        7  // Tag发送的POLL帧的长度-FCODE(1)+RANGE_NUM(1)+POLL_TX_TS(5)
-#define CAND_MSG_LEN        12 // Anchor发送的CAND帧的长度-FCODE(1)+RANGE_NUM(1)+POLL_RX_TS(5)+CAND_TX_TS(5)
-#define GRANT_MSG_LEN       12 // Tag发送的GRANT帧的长度-FCODE(1)+RANGE_NUM(1)+GRANT_TX_TS(5)+CAND_RX_TS(5)
-// Anchor发送的RESPONSE帧的长度-FCODE(1)+RANGE_NUM(1)+SLEEP_CORRECTION(2)+TOF(5)+GRANT_RX_TS(5)+RESP_TX_TS(5)
-#define RESPONSE_MSG_LEN    19
+#define POLL_MSG_LEN        6  // Tag发送的POLL帧的长度-FCODE(1)+RANGE_NUM(1)+POLL_TX_TS(4)
+#define CAND_MSG_LEN        10 // Anchor发送的CAND帧的长度-FCODE(1)+RANGE_NUM(1)+POLL_RX_TS(4)+CAND_TX_TS(4)
+#define GRANT_MSG_LEN       10 // Tag发送的GRANT帧的长度-FCODE(1)+RANGE_NUM(1)+GRANT_TX_TS(4)+CAND_RX_TS(4)
+// Anchor发送的RESPONSE帧的长度-FCODE(1)+RANGE_NUM(1)+SLEEP_CORRECTION(2)+TOF(4)+GRANT_RX_TS(4)+RESP_TX_TS(4)
+#define RESPONSE_MSG_LEN    16
 #define CRC_LEN             1 // CRC校验位长度
 
 uint8_t anchor_group_id = 0x01; // Anchor标记组
@@ -125,12 +128,12 @@ uint64_t cand_rx_ts_arr[MAX_ANCHOR_LIST_SIZE] = {0};
 // 记录距离有效的CAND的源地址
 uint16_t cand_anchor_addr[MAX_ANCHOR_LIST_SIZE] = {0};
 // 有效的CAND源地址数量，在RX_CAND状态下增加，在TX_GRANT状态下减少
-uint8_t cand_valid_num = 0;
+int8_t cand_valid_num = 0;
 
 // SS-TWR得到的ToF的容器
 uint64_t ToF_ss[MAX_ANCHOR_LIST_SIZE] = {0};
 // Anchor的DS-TWR得到的ToF的容器
-uint64_t ToF_ds1[MAX_ANCHOR_LIST_SIZE] = {0};
+uint32_t ToF_ds1[MAX_ANCHOR_LIST_SIZE] = {0};
 // Tag的DS-TWR得到的ToF的容器
 uint64_t ToF_ds2[MAX_ANCHOR_LIST_SIZE] = {0};
 
@@ -271,11 +274,16 @@ void testappruns(int modes) {
         } break;
         case TA_TXGRANT_WAIT_SEND: {
             // Tag 发送GRANT状态
+            state_flag++;
             TA_Tx_Grant_Handler();
         } break;
         case TA_RX_WAIT_RESPONSE: {
             // Tag 等待RESPONSE状态
             TA_Rx_Response_Handler();
+        } break;
+        case TA_RX_WAIT_GRANT: {
+            // Anchor 等待GRANT状态
+            TA_Rx_Grant_Handler();
         } break;
         case TA_TXRESPONSE_WAIT_SEND: {
             // Anchor 发送RESPONSE状态
@@ -374,7 +382,7 @@ static void TA_Txe_Handler(int module_mode) {
             // Tag 初始化结束(或者Tag初始化完毕后休眠结束)，准备发送POLL
             ins.nextState = TA_TXPOLL_WAIT_SEND;
         } else if (ins.previousState == TA_RX_WAIT_RESPONSE || ins.previousState == TA_RX_WAIT_CAND) {
-            // 接收到RESPONSE，发送下一个GRANT
+            // 接收到4个CAND，或者发送GRANT之后接收到了RESPONSE，发送下一个GRANT
             ins.nextState = TA_TXGRANT_WAIT_SEND;
         }
     } else if (module_mode == ANCHOR) {
@@ -448,7 +456,6 @@ static void TA_Rx_Poll_Handler(void) {
     if (dw_event.msgu.rxmsg_ss.messageData[FCODE] == 0) {
         // 未接收到数据
         ins.previousState = ins.testAppState;
-        // ins.nextState = TA_RX_WAIT_POLL;
     } else if (dw_event.msgu.rxmsg_ss.messageData[FCODE] == POLL) {
         Anch_RecNt = 0;
 
@@ -610,48 +617,58 @@ static void TA_Rx_Cand_Handler(void) {
                 msg_get_ts(&dw_event.msgu.rxmsg_ss.messageData[CAND_TX_TS], &cand_tx_ts32);
                 msg_get_ts(&dw_event.msgu.rxmsg_ss.messageData[POLL_RX_TS], &poll_rx_ts32);
 
-                // SS-TWR计算一次距离
-                uint64_t tof_ticks = 0;
-                // uint64_t rrt = dw_ts_diff(cand_rx_ts, poll_tx_ts);
-                // uint64_t rpt = dw_ts_diff(cand_tx_ts, poll_rx_ts);
-                // if (rrt > rpt) {
-                //     tof_ticks = (rrt - rpt) >> 1;
+                //! @Debug：把SS-TWR测距的流程暂时删去
+                // double rrt = (double)(cand_rx_ts32 - poll_tx_ts32);
+                // double rpt = (double)(cand_tx_ts32 - poll_rx_ts32);
+
+                // tof_ticks = (uint64_t)((rrt - rpt) / 2);
+
+                // double dist = instance_calc_distance(tof_ticks); // 计算距离
+                // if (dist > 0)                                    // 距离有效，记录源地址和距离
+                // {
+                //     // 记录地址、距离、和接收时间戳
+                //     cand_rx_ts_arr[cand_valid_num] = cand_rx_ts;
+                //     cand_anchor_addr[cand_valid_num] =
+                //         dw_event.msgu.rxmsg_ss.sourceAddr[0] + (dw_event.msgu.rxmsg_ss.sourceAddr[1] << 8);
+                //     ToF_ss[cand_valid_num] = tof_ticks;
+
+                //     if (cand_valid_num < MAX_ANCHOR_LIST_SIZE) {
+                //         // 未接收到满足定位需求的ToFs，继续接收
+                //         cand_valid_num++; // 增加cand_valid_num
+                //         ins.previousState = ins.testAppState;
+                //         ins.nextState = TA_RX_WAIT_CAND;
+                //     } else if (cand_valid_num == MAX_ANCHOR_LIST_SIZE) {
+                //         // 接收到满足定位需求的ToFs，先通过串口反馈一次数据，再切换为发送GRANT
+                //         dwt_forcetrxoff(); // 关闭收发器
+                //         ins.previousState = ins.testAppState;
+                //         ins.nextState = TA_FEEDBACK_DATA;
+                //     }
                 // } else {
-                //     tof_ticks = 0;
+                //     // 距离无效，放弃这段数据，继续接收
+                //     ins.previousState = ins.testAppState;
                 // }
 
-                // 转换为32位
-                cand_rx_ts32 = (uint32_t)cand_rx_ts;
+                // 记录地址、距离、和接收时间戳
+                cand_rx_ts_arr[cand_valid_num] = cand_rx_ts;
+                cand_anchor_addr[cand_valid_num] =
+                    dw_event.msgu.rxmsg_ss.sourceAddr[0] + (dw_event.msgu.rxmsg_ss.sourceAddr[1] << 8);
+                cand_valid_num++;
+                // 转换时间戳，记录到32位数据中
                 poll_tx_ts32 = (uint32_t)poll_tx_ts;
+                cand_rx_ts32 = (uint32_t)cand_rx_ts;
 
-                double rrt = (double)(cand_rx_ts32 - poll_tx_ts32);
-                double rpt = (double)(cand_tx_ts32 - poll_rx_ts32);
+                if (cand_valid_num < MAX_ANCHOR_LIST_SIZE) {
+                    // 接收到的CAND数量达不到4个，设置下一次接收接收超时时间。
+                    dwt_setrxtimeout(2200 * (ins.responseTO - cand_valid_num));
+                    dwt_rxenable(DWT_START_RX_IMMEDIATE);
 
-                tof_ticks = (uint64_t)((rrt - rpt) / 2);
-
-                double dist = instance_calc_distance(tof_ticks); // 计算距离
-                if (dist > 0)                                    // 距离有效，记录源地址和距离
-                {
-                    // 记录地址、距离、和接收时间戳
-                    cand_rx_ts_arr[cand_valid_num] = cand_rx_ts;
-                    cand_anchor_addr[cand_valid_num] =
-                        dw_event.msgu.rxmsg_ss.sourceAddr[0] + (dw_event.msgu.rxmsg_ss.sourceAddr[1] << 8);
-                    ToF_ss[cand_valid_num] = tof_ticks;
-
-                    if (cand_valid_num < MAX_ANCHOR_LIST_SIZE) {
-                        // 未接收到满足定位需求的ToFs，继续接收
-                        cand_valid_num++; // 增加cand_valid_num
-                        ins.previousState = ins.testAppState;
-                        ins.nextState = TA_RX_WAIT_CAND;
-                    } else if (cand_valid_num == MAX_ANCHOR_LIST_SIZE) {
-                        // 接收到满足定位需求的ToFs，先通过串口反馈一次数据，再切换为发送GRANT
-                        dwt_forcetrxoff(); // 关闭收发器
-                        ins.previousState = ins.testAppState;
-                        ins.nextState = TA_FEEDBACK_DATA;
-                    }
-                } else {
-                    // 距离无效，放弃这段数据，继续接收
                     ins.previousState = ins.testAppState;
+                    ins.nextState = TA_RX_WAIT_CAND;
+                } else {
+                    // 接收到CAND数量达到4个，关闭收发器，准备进入发送CAND阶段
+                    dwt_forcetrxoff();
+                    ins.previousState = ins.testAppState;
+                    ins.nextState = TA_TXE_WAIT;
                 }
 
             } else {
@@ -662,13 +679,14 @@ static void TA_Rx_Cand_Handler(void) {
             // 校验错误，放弃数据，继续接收
             ins.previousState = ins.testAppState;
         }
+        dw_event.msgu.rxmsg_ss.messageData[FCODE] = 0;
     } else {
         // 数据不为CAND，放弃数据，继续接收
         Tag_RecNt = 0;
+        dw_event.msgu.rxmsg_ss.messageData[FCODE] = 0;
         ins.previousState = ins.testAppState;
     }
     Tag_RecNt = 1;
-    dw_event.msgu.rxmsg_ss.messageData[FCODE] = 0;
 }
 
 static void TA_Tx_Cand_Handler(void) {
@@ -717,6 +735,7 @@ static void TA_Tx_Cand_Handler(void) {
 
 static void TA_Rx_Grant_Handler(void) {
     ins.testAppState = TA_RX_WAIT_GRANT;
+
     if (dw_event.msgu.rxmsg_ss.messageData[FCODE] == 0) {
         ins.previousState = ins.testAppState;
     } else if (dw_event.msgu.rxmsg_ss.messageData[FCODE] == GRANT) {
@@ -740,18 +759,6 @@ static void TA_Rx_Grant_Handler(void) {
                 msg_get_ts(&dw_event.msgu.rxmsg_ss.messageData[CAND_RX_TS], &cand_rx_ts32);
 
                 // DS-TWR计算距离
-                // uint64_t rrt1 = dw_ts_diff(cand_rx_ts, poll_tx_ts);
-                // uint64_t rrt2 = dw_ts_diff(grant_rx_ts, cand_tx_ts);
-                // uint64_t rpt1 = dw_ts_diff(cand_tx_ts, poll_rx_ts);
-                // uint64_t rpt2 = dw_ts_diff(cand_rx_ts, grant_tx_ts);
-                // uint64_t tof_ticks = 0;
-                // if (rrt1 > rpt1 && rrt2 > rpt2) {
-                //     // DS-TWR计算距离
-                //     tof_ticks = (((rrt1 - rpt1) + (rrt2 - rpt2)) >> 2);
-                // } else {
-                //     tof_ticks = 0;
-                // }
-
                 grant_rx_ts32 = (uint32_t)grant_rx_ts;
                 cand_tx_ts32 = (uint32_t)cand_tx_ts;
 
@@ -760,7 +767,11 @@ static void TA_Rx_Grant_Handler(void) {
                 double rrt2 = (double)(grant_rx_ts32 - cand_tx_ts32);
                 double rpt2 = (double)(cand_rx_ts32 - grant_tx_ts32);
 
-                tof_ticks = (int64_t)((rrt1 * rrt2 - rpt1 * rpt2) / (rrt1 + rrt2 + rpt1 + rpt2));
+                tof_ticks =
+                    (int64_t)((rrt1 * rrt2 - rpt1 * rpt2) / (rrt1 + rrt2 + rpt1 + rpt2)); // DW官方给出的ToF计算式
+
+                //! @Debug: 距离检查
+                dist_ss = instance_calc_distance(tof_ticks); // 计算距离
 
                 // 准备发送RESPONSE，预先装载一定量的数据
                 rangnum = ins.rangeNum = dw_event.msgu.rxmsg_ss.messageData[RANGE_NUM]; // 获取测距次数
@@ -768,11 +779,11 @@ static void TA_Rx_Grant_Handler(void) {
                 memcpy(&(ins.msg_f.destAddr[0]), &(dw_event.msgu.rxmsg_ss.sourceAddr[0]),
                        ADDR_BYTE_SIZE_S); // 装载目标地址
                 ins.msg_f.sourceAddr[0] = ins.eui64[0];
-                ins.msg_f.sourceAddr[1] = ins.eui64[1]; // 装载源地址
-                msg_set_ts(&ins.msg_f.messageData[GRANT_RX_TS],
-                           grant_rx_ts);                    // 装载grant接收时间
-                ins.msg_f.messageData[RANGE_NUM] = rangnum; // 装载测距次数
-                ins.msg_f.messageData[FCODE] = RESPONSE;    // 装载功能码
+                ins.msg_f.sourceAddr[1] = ins.eui64[1];                       // 装载源地址
+                msg_set_ts(&ins.msg_f.messageData[GRANT_RX_TS], grant_rx_ts); // 装载grant接收时间
+                msg_set_ts(&ins.msg_f.messageData[RESP_TOF], tof_ticks);      // 装载测距距离
+                ins.msg_f.messageData[RANGE_NUM] = rangnum;                   // 装载测距次数
+                ins.msg_f.messageData[FCODE] = RESPONSE;                      // 装载功能码
 
                 dwt_forcetrxoff(); // 关闭收发器
                 ins.previousState = ins.testAppState;
@@ -785,14 +796,15 @@ static void TA_Rx_Grant_Handler(void) {
             // 校验失败，放弃数据，继续接收
             ins.previousState = ins.testAppState;
         }
+        dw_event.msgu.rxmsg_ss.messageData[FCODE] = 0;
     } else {
         // 不为GRANT数据，放弃数据，继续接收
         Anch_RecNt = 0;
+        dw_event.msgu.rxmsg_ss.messageData[FCODE] = 0;
         ins.previousState = ins.testAppState;
     }
 
     Anch_RecNt = 1;
-    dw_event.msgu.rxmsg_ss.messageData[FCODE] = 0;
 }
 
 static void TA_Tx_Grant_Handler(void) {
@@ -826,7 +838,7 @@ static void TA_Tx_Grant_Handler(void) {
     ins.msg_f.messageData[GRANT_MSG_LEN] = 0;
     int crc_len = GRANT_MSG_LEN;
     for (int r = 0; r < crc_len; r++) ins.msg_f.messageData[GRANT_MSG_LEN] += ins.msg_f.messageData[r];
-    ins.msg_f.messageData[GRANT_MSG_LEN] = (~ins.msg_f.messageData[GRANT_MSG_LEN]) + 1; // 设置crc位
+    ins.msg_f.messageData[GRANT_MSG_LEN] = (~ins.msg_f.messageData[GRANT_MSG_LEN]) + 1; // 设置校验位
 
     dwt_writetxdata(frameLength, (uint8_t *)&(ins.msg_f), 0); // 填充GRANT数据
     dwt_writetxfctrl(frameLength, 0, 1);                      // 控制发送
@@ -876,18 +888,7 @@ static void TA_Rx_Response_Handler(void) {
                 msg_get_ts(&dw_event.msgu.rxmsg_ss.messageData[TOFR], &ToF_ds);
                 ToF_ds1[response_num] = ToF_ds;
 
-                // Tag端计算一遍DS-TWR
-                // uint64_t rrt1 = dw_ts_diff(resp_rx_ts, grant_tx_ts);
-                // uint64_t rpt1 = dw_ts_diff(resp_tx_ts, grant_rx_ts);
-                // uint64_t rrt2 = dw_ts_diff(grant_rx_ts, cand_tx_ts);
-                // uint64_t rpt2 = dw_ts_diff(grant_tx_ts, cand_rx_ts);
-                // if (rrt1 > rpt1 && rrt2 > rpt2) {
-                //     // DS-TWR计算距离
-                //     tof_ticks = (((rrt1 - rpt1) + (rrt2 - rpt2)) >> 2);
-                // } else {
-                //     tof_ticks = 0;
-                // }
-
+                // Tag端计算一次DS-TWR
                 grant_tx_ts32 = (uint32_t)grant_tx_ts;
                 resp_rx_ts32 = (uint32_t)resp_rx_ts;
 
@@ -933,13 +934,14 @@ static void TA_Rx_Response_Handler(void) {
             // CRC校验异常，回到接收
             ins.previousState = ins.testAppState;
         }
+        dw_event.msgu.rxmsg_ss.messageData[FCODE] = 0;
     } else {
         // 消息不为RESPONSE，回到接收
         ins.previousState = ins.testAppState;
+        dw_event.msgu.rxmsg_ss.messageData[FCODE] = 0;
     }
 
     Tag_RecNt = 1;
-    dw_event.msgu.rxmsg_ss.messageData[FCODE] = 0;
 }
 
 static void TA_Tx_Response_Handler(void) {
@@ -1001,28 +1003,31 @@ static void TA_Feedback_Handler() {
 
     uint8_t u = 0;
     double dist[MAX_ANCHOR_LIST_SIZE] = {0};
-    if (ins.previousState == TA_RX_WAIT_CAND) {
-        if (cand_valid_num > 0) {
-            // 接收到4个CAND，拥有4个SS-TWR数据
-            dist[0] = instance_calc_distance(ToF_ss[0]);
-            dist[1] = instance_calc_distance(ToF_ss[1]);
-            dist[2] = instance_calc_distance(ToF_ss[2]);
-            dist[3] = instance_calc_distance(ToF_ss[3]);
 
-            // 装载数据
-            u = sprintf((uint8_t *)sendbuff[0], "t%x %08x %08x %08x %08x : %04x %04x %04x %04x\r\n", taddr, dist[0],
-                        dist[1], dist[2], dist[3], cand_anchor_addr[0], cand_anchor_addr[1], cand_anchor_addr[2],
-                        cand_anchor_addr[3]);
-            // 通过串口发给上位机
-            if (u > 0) {
-                Usart1_DmaTx(sendbuff, u);
-                Usart3_DmaTx(sendbuff, u);
-                u = 0;
-            }
-            memset(sendbuff, 0, sizeof(sendbuff));
-        }
-        ins.nextState = TA_TXE_WAIT; // 切换到发送GRANT
-    } else if (ins.previousState == TA_RX_WAIT_RESPONSE) {
+    // if (ins.previousState == TA_RX_WAIT_CAND) {
+    //     if (cand_valid_num > 0) {
+    //         // 接收到4个CAND，拥有4个SS-TWR数据
+    //         dist[0] = instance_calc_distance(ToF_ss[0]);
+    //         dist[1] = instance_calc_distance(ToF_ss[1]);
+    //         dist[2] = instance_calc_distance(ToF_ss[2]);
+    //         dist[3] = instance_calc_distance(ToF_ss[3]);
+
+    //         // 装载数据
+    //         u = sprintf((uint8_t *)sendbuff[0], "t%x %08x %08x %08x %08x : %04x %04x %04x %04x\r\n", taddr, dist[0],
+    //                     dist[1], dist[2], dist[3], cand_anchor_addr[0], cand_anchor_addr[1], cand_anchor_addr[2],
+    //                     cand_anchor_addr[3]);
+    //         // 通过串口发给上位机
+    //         if (u > 0) {
+    //             Usart1_DmaTx(sendbuff, u);
+    //             Usart3_DmaTx(sendbuff, u);
+    //             u = 0;
+    //         }
+    //         memset(sendbuff, 0, sizeof(sendbuff));
+    //     }
+    //     ins.nextState = TA_TXE_WAIT; // 切换到发送GRANT
+    // }
+
+    if (ins.previousState == TA_RX_WAIT_RESPONSE) {
         if (response_num > 0) {
             // 接收到4个RESPONSE，拥有4个由Anchor计算的DS-TWR数据和4个Tag计算的DS-TWR数据
 
@@ -1074,6 +1079,7 @@ static void TA_Feedback_Handler() {
  */
 void twr_tx_tag_cb(const dwt_cb_data_t *txd) {
     if (mode == TAG) {
+        cb_flag++;
         if (ins.nextState != TA_TX_WAIT_CONF || ins.nextState != TA_RXE_WAIT) {
             // twr_rx_error_cb(txd);
         }
@@ -1105,6 +1111,9 @@ void twr_rx_cb(const dwt_cb_data_t *rxd) {
         // 接收到POLL或者GRANT，解析源地址
         if (dw_event.msgu.rxmsg_ss.messageData[FCODE] == POLL || dw_event.msgu.rxmsg_ss.messageData[FCODE] == GRANT) {
             addr16_t = dw_event.msgu.rxmsg_ss.sourceAddr[0] + (dw_event.msgu.rxmsg_ss.sourceAddr[1] << 8);
+
+            if (dw_event.msgu.rxmsg_ss.messageData[FCODE] == GRANT) cb_flag++;
+
             taddr = addr16_t;
         }
     }
@@ -1118,7 +1127,8 @@ void twr_rx_timeout_cb(const dwt_cb_data_t *rxd) {
         Tagrxtime = 0;
         if (ins.previousState == TA_RX_WAIT_CAND) {
             if (cand_valid_num > 0) {
-                ins.nextState = TA_FEEDBACK_DATA;
+                // 接收到CAND的数量大于0，依旧发送GRANT
+                ins.nextState = TA_TXE_WAIT;
             } else {
                 ins.nextState = TA_INIT;
             }

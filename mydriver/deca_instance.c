@@ -77,7 +77,8 @@ int twl_address_index = 0;
 //*         Bug已修复。
 
 //! @Debug: Tag在轮询周期中只能接收到来自一个Anchor的CAND，导致一个轮询周期只能吐出来一个测距数据，需要调整
-//!         TDMA框架，延长Tag等待时间和缩短Anchor调度的时间差；
+//!         TDMA框架，延长Tag等待时间和缩短Anchor调度的时间差；延长了Tag在接收到CAND后等待下一个CAND的时间，
+//!         缩短了Anchor在接收到POLL之后等待时隙的时间；
 
 /***************************************************************************************************/
 
@@ -85,7 +86,7 @@ int twl_address_index = 0;
 #define DISTRIBUTION_DIST   5                         // m
 #define RESPONSE_RANGE      DISTRIBUTION_DIST * 1.414 // m
 #define TIMESTAMP_LEN       5                         // 添加字段的长度，两个字节数为5的时间戳
-#define MAX_RESP_ANCHOR_NUM 9                         // 最大响应的Anchor数量
+#define MAX_RESP_ANCHOR_NUM 4                         // 最大响应的Anchor数量
 #define DW_MASK_40          ((1ULL << 40) - 1ULL)     // 针对DW1000的40B时间戳的回绕处理掩码
 
 #define POLL                0x81 // POLL功能码
@@ -708,7 +709,7 @@ static void TA_Tx_Cand_Handler(void) {
     dwt_writetxdata(frameLength, (uint8_t*)&(ins.msg_f), 0); // 填充CAND数据
     dwt_writetxfctrl(frameLength, 0, 1);                     // 控制发送
 
-    dwt_setrxtimeout(8800);                                            // 发送CAND之后等待8800us
+    dwt_setrxtimeout(20000);                                           // 发送CAND之后等待20000us
     dwt_setrxaftertxdelay(20);                                         // 发送后延迟20us开启接收
     ret_A = dwt_starttx(DWT_START_TX_DELAYED | DWT_RESPONSE_EXPECTED); // 延迟发送，发送完成开启接收
     RET_A = ret_A;
@@ -836,7 +837,7 @@ static void TA_Tx_Grant_Handler(void) {
     dwt_writetxdata(frameLength, (uint8_t*)&(ins.msg_f), 0); // 填充GRANT数据
     dwt_writetxfctrl(frameLength, 0, 1);                     // 控制发送
 
-    dwt_setrxtimeout(2200);                                            // 设置等待RESPONSE的时间为2200us
+    dwt_setrxtimeout(65535);                                           // 设置等待RESPONSE的时间为2200us
     dwt_setrxaftertxdelay(20);                                         // 设置发送完成后20us开启接收
     ret_T = dwt_starttx(DWT_START_TX_DELAYED | DWT_RESPONSE_EXPECTED); // 延迟发送，并设定发送完成后开启接收
     RET_T = ret_T;

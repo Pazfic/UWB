@@ -27,26 +27,27 @@ Project File Date:  09/01/2025
 <h2>Output:</h2>
 *** Using Compiler 'V5.06 update 7 (build 960)', folder: 'D:\keil5\ARM\ARMCC\Bin'
 Build target 'mini5'
+compiling tim.c...
 compiling deca_instance.c...
-..\mydriver\deca_instance.c(109): warning:  #47-D: incompatible redefinition of macro "POLL_MSG_LEN"  (declared at line 42 of "..\mydriver\dwt_common.h")
+..\mydriver\deca_instance.c(113): warning:  #47-D: incompatible redefinition of macro "POLL_MSG_LEN"  (declared at line 42 of "..\mydriver\dwt_common.h")
   #define POLL_MSG_LEN        6  // Tag发送的POLL帧的长度-FCODE(1)+RANGE_NUM(1)+POLL_TX_TS(4)
-..\mydriver\deca_instance.c(258): warning:  #177-D: variable "ret_T"  was declared but never referenced
+..\mydriver\deca_instance.c(264): warning:  #177-D: variable "ret_T"  was declared but never referenced
       int ret_T = 0;
-..\mydriver\deca_instance.c(259): warning:  #177-D: variable "ret_A"  was declared but never referenced
+..\mydriver\deca_instance.c(265): warning:  #177-D: variable "ret_A"  was declared but never referenced
       int ret_A = 0;
-..\mydriver\deca_instance.c(260): warning:  #177-D: variable "u"  was declared but never referenced
+..\mydriver\deca_instance.c(266): warning:  #177-D: variable "u"  was declared but never referenced
       int u = 0;
-..\mydriver\deca_instance.c(627): warning:  #177-D: variable "Anch_num"  was declared but never referenced
+..\mydriver\deca_instance.c(640): warning:  #177-D: variable "Anch_num"  was declared but never referenced
           uint8_t Anch_num = 0;
-..\mydriver\deca_instance.c(863): warning:  #177-D: variable "Anch_num"  was declared but never referenced
+..\mydriver\deca_instance.c(878): warning:  #177-D: variable "Anch_num"  was declared but never referenced
           uint8_t Anch_num = 0;
-..\mydriver\deca_instance.c(225): warning:  #177-D: variable "resp_rx_tag"  was declared but never referenced
+..\mydriver\deca_instance.c(229): warning:  #177-D: variable "resp_rx_tag"  was declared but never referenced
   static uint64_t resp_rx_tag[MAX_ANCHOR_LIST_SIZE]; // 发送response 时间
-..\mydriver\deca_instance.c(1119): warning:  #177-D: function "get_tx_timestamp_u64"  was declared but never referenced
+..\mydriver\deca_instance.c(1143): warning:  #177-D: function "get_tx_timestamp_u64"  was declared but never referenced
   static uint64_t get_tx_timestamp_u64(void) {
 ..\mydriver\deca_instance.c: 8 warnings, 0 errors
 linking...
-Program Size: Code=32108 RO-data=1144 RW-data=340 ZI-data=5052  
+Program Size: Code=32408 RO-data=1144 RW-data=352 ZI-data=5064  
 FromELF: creating hex file...
 "mini5\mini5.axf" - 0 Error(s), 8 Warning(s).
 
@@ -71,7 +72,7 @@ Package Vendor: Keil
 
    * Component: ARM::CMSIS:CORE:5.6.0
       Include file:  CMSIS\Core\Include\tz_context.h
-Build Time Elapsed:  00:00:01
+Build Time Elapsed:  00:00:02
 </pre>
 </body>
 </html>

@@ -121,19 +121,24 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef* htim) {
                 Anchrxtime = 0;
             }
             if (Anchrxtime > T_Round * 100) {
-                ins.previousState = ins.testAppState;
-                // 超时，重新初始化
-                ins.nextState = TA_INIT;
+                // ins.previousState = ins.testAppState;
+                // // 超时，重新初始化
+                // ins.nextState = TA_INIT;
                 Anchrxtime = 0;
+                NVIC_SystemReset();
             }
+
+            //! @Debug: Anchor控制发送回退到原来的代码
+            Sendcontrltime++;
+
             // 减少休眠时间
-            if (waittime == 1) {
-                if (ins.nextState == TA_SLEEP) {
-                    ins.previousState = ins.testAppState;
-                    ins.nextState = TA_SLEEP_DONE;
-                }
-            }
-            if (waittime > 0) waittime--;
+            // if (waittime == 1) {
+            //     if (ins.nextState == TA_SLEEP) {
+            //         ins.previousState = ins.testAppState;
+            //         ins.nextState = TA_SLEEP_DONE;
+            //     }
+            // }
+            // if (waittime > 0) waittime--;
 
             Anchpollingtime++;
         } else if (sys_para.role == 0x02) {
@@ -144,10 +149,13 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef* htim) {
                 Tagrxtime = 0;
             }
             if (Tagrxtime >= 50000) {
-                ins.previousState = ins.testAppState;
-                // 超时，重新初始化
-                ins.nextState = TA_INIT;
+                // ins.previousState = ins.testAppState;
+                // // 超时，重新初始化
+                // ins.nextState = TA_INIT;
+                // Tagrxtime = 0;
+                ins.nextState = TA_NULL;
                 Tagrxtime = 0;
+                NVIC_SystemReset();
             }
 
             if (waittime == 1) {

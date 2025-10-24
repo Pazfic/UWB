@@ -1,34 +1,10 @@
-#include <stdio.h>
-
-#include "dwt_common.h"
-#include "instance.h"
-#include "main.h"
-#include "tim.h"
-
-#define MAXTAGNUM  128 // 定义最大标签数量
-#define MINTAGSLOT 10  // 定义标签间隔时间
-uint8_t mode = 0;      // 标签基站模式
-uint8_t sendbuff[300]; // 发送buff
-uint8_t index2 = 0;    // 标签收到基站response的时间戳填充位置
-uint8_t Tarecrx = 0;   // 标签模式
-uint8_t faild_rxtime = 0;
-uint16_t addr8_t = 0;      // 基站短地址
-uint16_t addr16_t = 0;     // 基站长地址
-uint16_t Anch_addr = 1000; // 基站地址
-int MAX_TAG_SIZE = 64;     // 标签个数
-int N_Slot = 64;           // 时间片个数
-int T_Slot = 20;           // 1个时间片的时间 ms
-int T_Round = 64 * 20;     // 轮询的总时间
-int GetT_ID = 0;           // 标签ID
-int rangnum = 0;           // 测距次数不断加
-int POLL_Value = 0;        // 预留电池
-int aaddr, taddr;          // 基站标签地址
-int contrlsendms = 10;     // 控制发送时间
-int contrlbit = 0;         // 控制发送位
-int POLL_count = 0;        // poll次数++
-int response_num = 0;      // 标签接收到response包数量
-int lastwaittime = 0;      // 标签应等待时间
-int twl_address_index = 0;
+//* 通信模型和状态机切换流程图详见Model.png
+//* 通过记录以下时间戳，Tag和Anchor都可以使用DS-TWR计算距离，单次轮询可以计算2次DS-ToF
+//* Anchor: ToF_ds1 = 1/4 x [(grant_rx_ts - cand_tx_ts) - (grant_tx_ts -
+//* cand_rx_ts) + (cand_rx_ts - poll_tx_ts) - (cand_tx_ts - poll_rx_ts)] Tag:
+//* ToF_ds2 = 1/4 x [(resp_rx_ts - grant_tx_ts) - (resp_tx_ts - grant_rx_ts) +
+//* (grant_rx_ts - cand_tx_ts) - (grant_tx_ts - cand_rx_ts)]
+//* Anchor在RESPONSE中装载ToF_ds1，Tag端就可以获得2次完整的测距信息，取平均得到更准确的测距结果
 
 /***************************************************************************************************/
 
@@ -77,10 +53,51 @@ int twl_address_index = 0;
 //*         Bug已修复。
 
 //! @Debug: Tag在轮询周期中只能接收到来自一个Anchor的CAND，导致一个轮询周期只能吐出来一个测距数据，需要调整
-//!         TDMA框架，延长Tag等待时间和缩短Anchor调度的时间差；延长了Tag在接收到CAND后等待下一个CAND的时间，
-//!         缩短了Anchor在接收到POLL之后等待时隙的时间；
+//!         TDMA框架，延长Tag等待时间和缩短Anchor调度的时间差；针对周期内通信冲突问题，存在3个可能性
+//!         1. Tag在接收到CAND之后的等待下一个CAND的时间窗口不够长
+//!         2. Anchor在发送CAND之后等待来自Tag的GRANT的时间窗口不够长
+//!         3. Anchor在接收到POLL之后分配到的时隙存在冲突
+//!         于是将时隙数量固定在4，固定4个Anchor的发送时隙，同时延长Tag的CAND等待时间和Anchor的GRANT等待时间
+//!         怀疑是waittime的问题，将原来程序中的Anchor基于contrlsendms等待时隙的逻辑改回来了，Debug得到Anchor
+//!         的等待休眠时间是稳定的，但是依旧没能解决问题。
+//!         不论是把Tag等待消息的窗口时间延长还是反复调整Anchor的时隙长度，结果都是一样对程序现有的问题没有影响，
+//!         怀疑是程序逻辑的问题；观察Anchor的状态机，发现Anchor总会在某个状态下保持较长的时间(2-3s左右)；发现
+//!         是在状态TA_TX_WAIT_CONF下(发送后等待发送确认)，将这个状态从状态机中去除；然后发现Anchor开始在
+//!         TA_RX_WAIT_POLL状态下保持2-3s的时间，这个状态标示Anchor在等待Tag发起轮询，但是查看Tag端的状态机，
+//!         发现Tag端发起轮询的频率大概为10Hz左右；认为是Anchor端逻辑问题，具体需要详细的Debug定位病灶。
 
 /***************************************************************************************************/
+#include <stdio.h>
+
+#include "dwt_common.h"
+#include "instance.h"
+#include "main.h"
+#include "tim.h"
+
+#define MAXTAGNUM  128 // 定义最大标签数量
+#define MINTAGSLOT 10  // 定义标签间隔时间
+uint8_t mode = 0;      // 标签基站模式
+uint8_t sendbuff[300]; // 发送buff
+uint8_t index2 = 0;    // 标签收到基站response的时间戳填充位置
+uint8_t Tarecrx = 0;   // 标签模式
+uint8_t faild_rxtime = 0;
+uint16_t addr8_t = 0;      // 基站短地址
+uint16_t addr16_t = 0;     // 基站长地址
+uint16_t Anch_addr = 1000; // 基站地址
+int MAX_TAG_SIZE = 64;     // 标签个数
+int N_Slot = 64;           // 时间片个数
+int T_Slot = 20;           // 1个时间片的时间 ms
+int T_Round = 64 * 20;     // 轮询的总时间
+int GetT_ID = 0;           // 标签ID
+int rangnum = 0;           // 测距次数不断加
+int POLL_Value = 0;        // 预留电池
+int aaddr, taddr;          // 基站标签地址
+int contrlsendms = 10;     // 控制发送时间
+int contrlbit = 0;         // 控制发送位
+int POLL_count = 0;        // poll次数++
+int response_num = 0;      // 标签接收到response包数量
+int lastwaittime = 0;      // 标签应等待时间
+int twl_address_index = 0;
 
 // 基站的部署间距，和基站的响应范围，单位m
 #define DISTRIBUTION_DIST   5                         // m
@@ -116,14 +133,7 @@ int twl_address_index = 0;
 uint8_t anchor_group_id = 0x01; // Anchor标记组
 uint8_t tag_group_id = 0x00;    // Tag标记组
 
-/// 通过记录以下时间戳，Tag和Anchor都可以使用DS-TWR计算距离，单次轮询可以计算3次ToF(一次SS-TWR，两次DS-TWR)
-/// Tag: ToF_ss = 1/2 x [(cand_rx_ts - poll_tx_ts) - (cand_tx_ts - poll_rx_ts)]
-/// Anchor: ToF_ds1 = 1/4 x [(grant_rx_ts - cand_tx_ts) - (grant_tx_ts -
-/// cand_rx_ts) + (cand_rx_ts - poll_tx_ts) - (cand_tx_ts - poll_rx_ts)] Tag:
-/// ToF_ds2 = 1/4 x [(resp_rx_ts - grant_tx_ts) - (resp_tx_ts - grant_rx_ts) +
-/// (grant_rx_ts - cand_tx_ts) - (grant_tx_ts - cand_rx_ts)]
-/// Anchor在RESPONSE中装载ToF_ds1，Tag端就可以获得3次完整的测距信息，可以试着融合三次测距信息共12维数据，计算出更加精确的距离
-
+// 64位时间戳，用于直接获取DW的时间戳
 static uint64_t poll_tx_ts;  // 发送poll时间
 static uint64_t poll_rx_ts;  // 接收poll时间
 static uint64_t cand_tx_ts;  // 发送cand时间
@@ -150,12 +160,12 @@ uint16_t cand_anchor_addr[MAX_ANCHOR_LIST_SIZE] = {0};
 // 有效的CAND源地址数量，在RX_CAND状态下增加，在TX_GRANT状态下减少
 int8_t cand_valid_num = 0;
 
-// SS-TWR得到的ToF的容器
-uint64_t ToF_ss[MAX_ANCHOR_LIST_SIZE] = {0};
 // Anchor的DS-TWR得到的ToF的容器
 uint32_t ToF_ds1[MAX_ANCHOR_LIST_SIZE] = {0};
 // Tag的DS-TWR得到的ToF的容器
 uint64_t ToF_ds2[MAX_ANCHOR_LIST_SIZE] = {0};
+// 记录Anchor的时隙序号
+uint8_t slot_idx;
 
 // debug
 double dist_ss = 0;
@@ -252,6 +262,8 @@ void insaddress(uint16_t address) // 获取标签ID，基站地址，设置包头帧
     ins.longTermRangeCount = 0;
     ins.msg_f.seqNum = 0;
     T_ID = sys_para.uwbid;
+    // 计算时隙索引
+    slot_idx = ins.instanceAddress16 % MAX_ANCHOR_LIST_SIZE;
 }
 
 void testappruns(int modes) {
@@ -315,7 +327,12 @@ void testappruns(int modes) {
             TA_Feedback_Handler();
         } break;
         case TA_SLEEP: {
-            // 等待时隙，具体处理方法为等待已被设置的waittime在时钟中断中自减为0
+            // 等待时隙，具体处理方法为等待已被设置的waittime在时钟中断中自减为0、
+            if (mode == ANCHOR) {
+                if (((Sendcontrltime - contrlsendms) >= 0) && (contrlbit == 1)) {
+                    ins.nextState = TA_SLEEP_DONE;
+                }
+            }
             ins.testAppState = TA_SLEEP;
             ins.previousState = ins.testAppState;
         } break;
@@ -515,15 +532,16 @@ static void TA_Rx_Poll_Handler(void) {
                 memcpy(&(ins.msg_f.destAddr[0]), &(dw_event.msgu.rxmsg_ss.sourceAddr[0]),
                        ADDR_BYTE_SIZE_S); // 装载目标地址
                 ins.msg_f.sourceAddr[0] = ins.eui64[0];
-                ins.msg_f.sourceAddr[1] = ins.eui64[1]; // 装载源地址
-                msg_set_ts(&ins.msg_f.messageData[POLL_RX_TS],
-                           poll_rx_ts);                     // 装载poll接收时间
-                ins.msg_f.messageData[POLL_RNUM] = rangnum; // 装载测距次数
-                ins.msg_f.messageData[FCODE] = CAND;        // 装载功能码
+                ins.msg_f.sourceAddr[1] = ins.eui64[1];                     // 装载源地址
+                msg_set_ts(&ins.msg_f.messageData[POLL_RX_TS], poll_rx_ts); // 装载poll接收时间
+                ins.msg_f.messageData[POLL_RNUM] = rangnum;                 // 装载测距次数
+                ins.msg_f.messageData[FCODE] = CAND;                        // 装载功能码
 
-                uint8_t slot_idx = ins.instanceAddress16 % MAX_RESP_ANCHOR_NUM;
-                waittime = slot_idx * 10 + 3; // 设置休眠时间，等待时隙
+                contrlsendms = slot_idx * 5 + 3; // 设置休眠时间，等待时隙
                 contrlbit = 1;
+                Sendcontrltime = 0;
+
+                dwt_forcetrxoff();
 
                 ins.previousState = ins.testAppState;
                 ins.nextState = TA_SLEEP;
@@ -569,7 +587,7 @@ static void TA_Tx_Poll_Handler(void) {
     // @Pazfic: 计算发送时间戳
     uint32_t tx_ts = 0;
     uint64_t precise_tx_ts = get_sys_timestamp_u64();
-    tx_ts = (precise_tx_ts + (1000 * UUS_TO_DWT_TIME)) >> 8;                // 延迟100us发送
+    tx_ts = (precise_tx_ts + (500 * UUS_TO_DWT_TIME)) >> 8;                 // 延迟100us发送
     dwt_setdelayedtrxtime(tx_ts);                                           // 设置延迟发送时间戳
     precise_tx_ts = (((uint64_t)(tx_ts & 0xFFFFFFFEUL)) << 8) + TX_ANT_DLY; // 计算精确发送时间戳
     poll_tx_ts = precise_tx_ts;
@@ -588,7 +606,7 @@ static void TA_Tx_Poll_Handler(void) {
     dwt_writetxdata(frameLength, (uint8_t*)&(ins.msg_f), 0); // 填充poll数据
     dwt_writetxfctrl(frameLength, 0, 1);                     // 控制发送
 
-    dwt_setrxtimeout(ins.responseTO * 2200);
+    dwt_setrxtimeout(ins.responseTO * 10000);                          //! @Debug: 延长CAND等待时间
     dwt_setrxaftertxdelay(20);                                         // 在发送后20us开启接收
     ret_T = dwt_starttx(DWT_START_TX_DELAYED | DWT_RESPONSE_EXPECTED); // 延迟发送并在发送完成后开启接收
     RET_T = ret_T;
@@ -606,7 +624,8 @@ static void TA_Tx_Poll_Handler(void) {
         memset(cand_rx_ts_arr, 0, sizeof(cand_rx_ts_arr));
 
         ins.previousState = ins.testAppState;
-        ins.nextState = TA_TX_WAIT_CONF;
+        // ins.nextState = TA_TX_WAIT_CONF;
+        ins.nextState = TA_RXE_WAIT;
     } else {
         // 发送失败，关闭收发器，重新初始化
         dwt_forcetrxoff();
@@ -640,19 +659,20 @@ static void TA_Rx_Cand_Handler(void) {
                 // 获取CAND发送时间和POLL接收时间，记录在32位变量中
                 msg_get_ts(&dw_event.msgu.rxmsg_ss.messageData[CAND_TX_TS], &cand_tx_ts32);
                 msg_get_ts(&dw_event.msgu.rxmsg_ss.messageData[POLL_RX_TS], &poll_rx_ts32);
+                cand_rx_ts_arr[cand_valid_num] = cand_rx_ts;
 
                 // 记录地址、距离、和接收时间戳
-                cand_rx_ts_arr[cand_valid_num] = cand_rx_ts;
                 cand_anchor_addr[cand_valid_num] =
                     dw_event.msgu.rxmsg_ss.sourceAddr[0] + (dw_event.msgu.rxmsg_ss.sourceAddr[1] << 8);
-                cand_valid_num++;
                 // 转换时间戳，记录到32位数据中
                 poll_tx_ts32 = (uint32_t)poll_tx_ts;
                 cand_rx_ts32 = (uint32_t)cand_rx_ts;
+                // 依次记录接收到CAND的时间戳
+                cand_valid_num++;
 
                 if (cand_valid_num < MAX_ANCHOR_LIST_SIZE) {
                     // 接收到的CAND数量达不到4个，设置下一次接收接收超时时间。
-                    dwt_setrxtimeout(2200 * (ins.responseTO - cand_valid_num));
+                    dwt_setrxtimeout((ins.responseTO - cand_valid_num) * 10000);
                     dwt_rxenable(DWT_START_RX_IMMEDIATE);
 
                     ins.previousState = ins.testAppState;
@@ -693,7 +713,7 @@ static void TA_Tx_Cand_Handler(void) {
     // 设置延迟发送
     uint32_t tx_ts = 0;
     uint64_t precise_tx_ts = get_sys_timestamp_u64();
-    tx_ts = (precise_tx_ts + (1000 * UUS_TO_DWT_TIME)) >> 8;                // 延迟100us发送
+    tx_ts = (precise_tx_ts + (500 * UUS_TO_DWT_TIME)) >> 8;                 // 延迟发送
     dwt_setdelayedtrxtime(tx_ts);                                           // 设置延迟发送时间戳
     precise_tx_ts = (((uint64_t)(tx_ts & 0xFFFFFFFEUL)) << 8) + TX_ANT_DLY; // 计算精确发送时间戳
     cand_tx_ts = precise_tx_ts;
@@ -709,7 +729,7 @@ static void TA_Tx_Cand_Handler(void) {
     dwt_writetxdata(frameLength, (uint8_t*)&(ins.msg_f), 0); // 填充CAND数据
     dwt_writetxfctrl(frameLength, 0, 1);                     // 控制发送
 
-    dwt_setrxtimeout(20000);                                           // 发送CAND之后等待20000us
+    dwt_setrxtimeout(65535);
     dwt_setrxaftertxdelay(20);                                         // 发送后延迟20us开启接收
     ret_A = dwt_starttx(DWT_START_TX_DELAYED | DWT_RESPONSE_EXPECTED); // 延迟发送，发送完成开启接收
     RET_A = ret_A;
@@ -717,7 +737,8 @@ static void TA_Tx_Cand_Handler(void) {
     // 判断是否发送成功，成功则进入发送确认，失败则回到初始化
     if (ret_A == DWT_SUCCESS) {
         ins.previousState = ins.testAppState;
-        ins.nextState = TA_TX_WAIT_CONF;
+        // ins.nextState = TA_TX_WAIT_CONF;
+        ins.nextState = TA_RXE_WAIT;
     } else {
         dwt_forcetrxoff();
         ins.previousState = ins.testAppState;
@@ -814,15 +835,14 @@ static void TA_Tx_Grant_Handler(void) {
     ins.msg_f.destAddr[0] = cand_anchor_addr[grant_addr_idx] & 0xff;
     ins.msg_f.destAddr[1] = (cand_anchor_addr[grant_addr_idx] >> 8) & 0xff;
 
+    msg_set_ts(&ins.msg_f.messageData[CAND_RX_TS], cand_rx_ts_arr[grant_addr_idx]); // 装载cand接收时间戳
     // 增加grant_addr_idx用于索引cand_anchor_addr的地址
     if (grant_addr_idx < cand_valid_num) grant_addr_idx++;
-
-    msg_set_ts(&ins.msg_f.messageData[CAND_RX_TS], cand_rx_ts); // 装载cand接收时间戳
 
     // 设置延迟发送
     uint32_t tx_ts = 0;
     uint64_t precise_tx_ts = get_sys_timestamp_u64();
-    tx_ts = (precise_tx_ts + (1000 * UUS_TO_DWT_TIME)) >> 8;                // 延迟100us发送
+    tx_ts = (precise_tx_ts + (500 * UUS_TO_DWT_TIME)) >> 8;                 // 延迟100us发送
     dwt_setdelayedtrxtime(tx_ts);                                           // 设置延迟发送时间戳
     precise_tx_ts = (((uint64_t)(tx_ts & 0xFFFFFFFEUL)) << 8) + TX_ANT_DLY; // 计算精确发送时间戳
     grant_tx_ts = precise_tx_ts;
@@ -837,7 +857,7 @@ static void TA_Tx_Grant_Handler(void) {
     dwt_writetxdata(frameLength, (uint8_t*)&(ins.msg_f), 0); // 填充GRANT数据
     dwt_writetxfctrl(frameLength, 0, 1);                     // 控制发送
 
-    dwt_setrxtimeout(65535);                                           // 设置等待RESPONSE的时间为2200us
+    dwt_setrxtimeout(ins.responseTO * 4400);                           //! @Debug: 延长等待RESPONSE的时间
     dwt_setrxaftertxdelay(20);                                         // 设置发送完成后20us开启接收
     ret_T = dwt_starttx(DWT_START_TX_DELAYED | DWT_RESPONSE_EXPECTED); // 延迟发送，并设定发送完成后开启接收
     RET_T = ret_T;
@@ -845,7 +865,8 @@ static void TA_Tx_Grant_Handler(void) {
     // 是否发送成功，成功则进行确认，失败则回到初始化阶段
     if (ret_T == DWT_SUCCESS) {
         ins.previousState = ins.testAppState;
-        ins.nextState = TA_TX_WAIT_CONF;
+        // ins.nextState = TA_TX_WAIT_CONF;
+        ins.nextState = TA_RXE_WAIT;
     } else {
         dwt_forcetrxoff();
         ins.previousState = ins.testAppState;
@@ -885,6 +906,7 @@ static void TA_Rx_Response_Handler(void) {
                 // Tag端计算一次DS-TWR
                 grant_tx_ts32 = (uint32_t)grant_tx_ts;
                 resp_rx_ts32 = (uint32_t)resp_rx_ts;
+                cand_rx_ts32 = (uint32_t)cand_rx_ts_arr[grant_addr_idx - 1];
 
                 double rrt1 = (double)(resp_rx_ts32 - grant_tx_ts32);
                 double rpt1 = (double)(resp_tx_ts32 - grant_rx_ts32);
@@ -966,7 +988,7 @@ static void TA_Tx_Response_Handler(void) {
     // 配置延迟发送
     uint32_t tx_ts = 0;
     uint64_t precise_tx_ts = get_sys_timestamp_u64();
-    tx_ts = (precise_tx_ts + (1000 * UUS_TO_DWT_TIME)) >> 8;                // 延迟100us发送
+    tx_ts = (precise_tx_ts + (500 * UUS_TO_DWT_TIME)) >> 8;                 // 延迟发送
     dwt_setdelayedtrxtime(tx_ts);                                           // 设置延迟发送时间戳
     precise_tx_ts = (((uint64_t)(tx_ts & 0xFFFFFFFEUL)) << 8) + TX_ANT_DLY; // 计算精确发送时间戳
     resp_tx_ts = precise_tx_ts;
@@ -987,7 +1009,8 @@ static void TA_Tx_Response_Handler(void) {
     if (ret_A == DWT_SUCCESS) {
         // 发送成功，切换到确认
         ins.previousState = ins.testAppState;
-        ins.nextState = TA_TX_WAIT_CONF;
+        // ins.nextState = TA_TX_WAIT_CONF;
+        ins.nextState = TA_INIT;
     } else {
         // 发送失败，关闭收发器，重新初始化
         dwt_forcetrxoff();
@@ -1016,9 +1039,17 @@ static void TA_Feedback_Handler() {
             }
 
             // 装载数据
-            u = sprintf((char*)&sendbuff[0], "t%x %d %d %d %d : %04x %04x %04x %04x\r\n", taddr, (int)dist[0],
-                        (int)dist[1], (int)dist[2], (int)dist[3], cand_anchor_addr[0], cand_anchor_addr[1],
-                        cand_anchor_addr[2], cand_anchor_addr[3]);
+            // u = sprintf((char*)&sendbuff[0], "t%x %d %d %d %d : %04x %04x %04x %04x\r\n", taddr,
+            //             (int)(dist[0] * 0.9335 - 67.8345), (int)(dist[1] * 0.9335 - 67.8345),
+            //             (int)(dist[2] * 0.9335 - 67.8345), (int)(dist[3] * 0.9335 - 67.8345), cand_anchor_addr[0],
+            //             cand_anchor_addr[1], cand_anchor_addr[2], cand_anchor_addr[3]);
+
+            //! @Debug: Log出接收到的CAND数量和RESPONSE数量
+            u = sprintf((char*)&sendbuff[0], "t%x %d %d %d %d : %04x %04x %04x %04x : %d %d\r\n", taddr,
+                        (int)(dist[0] * 0.9335 - 67.8345), (int)(dist[1] * 0.9335 - 67.8345),
+                        (int)(dist[2] * 0.9335 - 67.8345), (int)(dist[3] * 0.9335 - 67.8345), cand_anchor_addr[0],
+                        cand_anchor_addr[1], cand_anchor_addr[2], cand_anchor_addr[3], cand_valid_num, response_num);
+
             // 通过串口发给上位机
             if (u > 0) {
                 state_flag++;

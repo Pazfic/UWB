@@ -138,7 +138,7 @@ int main(void) {
     }
     dwt_forcetrxoff();
     port_EnableEXT_IRQ(); // 使能中断
-    // MX_IWDG_Init();
+    MX_IWDG_Init();
 
     HAL_TIM_Base_Start_IT(&htim1);
     /* USER CODE END 2 */
@@ -149,7 +149,7 @@ int main(void) {
         /* USER CODE END WHILE */
 
         /* USER CODE BEGIN 3 */
-        // IWDG_Feed();
+        IWDG_Feed();
         if (ins.nextState == TA_INIT) {
             Process_ATCMD();
         }
@@ -230,7 +230,7 @@ void Error_Handler(void) {
  * @param  line: assert_param error line source number
  * @retval None
  */
-void assert_failed(uint8_t *file, uint32_t line) {
+void assert_failed(uint8_t* file, uint32_t line) {
     /* USER CODE BEGIN 6 */
     /* User can add his own implementation to report the file name and line number,
        ex: printf("Wrong parameters value: file %s on line %d\r\n", file, line) */
